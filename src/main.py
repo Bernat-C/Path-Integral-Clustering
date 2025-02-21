@@ -5,18 +5,20 @@ from scipy.spatial import KDTree
 def dist(xi, xj):
     return np.linalg.norm(xi - xj)
 
-def k_nearest_neighbors(data, k):
+def k_nearest_neighbors(data, k): # Do it once and return 3 and k
     tree = KDTree(data)  # Build KDTree
     distances, indices = tree.query(data, k=k+1)  # Query k+1 (includes self)
     return indices[:, 1:], distances[:, 1:]  # Remove self (0th neighbor)
 
 
-def sigma_squared(data, knn3i, a=0): # a to be set
+def sigma_squared(data, knn3i, a): # a to be set
     n = data.shape[0]
-    for i in range(n):
-        for j in knn3i:
-            dist = dist(data[i],data[j]) ** 2
+    
+    neighbors = data[knn3i]
+    squared_dists = np.sum((data[:, None, :] - neighbors) ** 2, axis=2)  
     den = -3*n*np.log(a)
+
+    return squared_dists / den
 
 
 # i and j are indices
@@ -26,16 +28,46 @@ def pairwise_similarity(data, i, j, knn, sigma2):
         np.exp(-dist(data[i],data[j]) ** 2 / sigma2)
     else:
         return 0
-
-def create_digraph(X):
-    #W = # Weighted adjacency matrix
-    n = W.shape[0]
-    knn3_ind, knn3_dis = k_nearest_neighbors(X,3)
-    weights = np.array([[W[i,j] for j in knn3_ind[i]] for i in range(n)])
     
-    # Compute geometric mean: (w1 * w2 * w3)^(1/3)
-    a = np.prod(weights, axis=1) ** (1/3)
+def get_edges(W):
+    E = []
+    n = W.shape[0]
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                E.append(W[i,j])
 
-    #sigma2 = sigma_squared(data, knn3i)
-    #a = np.prod(w) ** (1 / len(w))  # Geometric mean
+    return np.array(E)
+
+def compute_P(W):
+    row_sums = np.sum(W, axis=1)  # Compute row sums (d_ii)
+    
+    # Avoid division by zero for isolated nodes
+    np.place(row_sums, row_sums == 0, 1)
+
+    # Compute D^(-1) * W using reciprocal for speed
+    P = W * np.reciprocal(row_sums)[:, None]  # Element-wise multiplication
+
+    return P
+
+def create_digraph(X, k=3, a=0):
+    X = np.asarray(X)
+    n = X.shape[0]
+    # Compute parameters
+    knn_ind, knn_dis = k_nearest_neighbors(X,k)
+    knn3_ind, knn3_dis = k_nearest_neighbors(X,3)
+    sigma2 = sigma_squared(X,knn3_ind,a)
+    
+    #a = np.prod(weights, axis=1) ** (1/3)
+
+    # Weighted adjacency matrix
+    W = np.fromfunction(np.vectorize(lambda i, j: pairwise_similarity(X,i,j,knn_ind,sigma2)), (n, n), dtype=int)
+
+    P = compute_P(W)
+
+# Runs Agglome1rative clustering via maximum incremental path integral.
+def run():
     pass
+
+if __name__ == "main":
+    run()
