@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial import KDTree
+from path_integral import compute_incremental_path_integral, compute_path_integral
 
 # Euclidean distance (for now)
 def dist(xi, xj):
@@ -58,16 +59,32 @@ def create_digraph(X, k=3, a=0):
     knn3_ind, knn3_dis = k_nearest_neighbors(X,3)
     sigma2 = sigma_squared(X,knn3_ind,a)
     
-    #a = np.prod(weights, axis=1) ** (1/3)
+    #a = np.prod(W, axis=1) ** (1/3)
 
     # Weighted adjacency matrix
     W = np.fromfunction(np.vectorize(lambda i, j: pairwise_similarity(X,i,j,knn_ind,sigma2)), (n, n), dtype=int)
 
+    return W
+
+def run(X, nt):
+    """ Runs Agglome1rative clustering via maximum incremental path integral.
+
+    Args:
+        X (_type_): set of n sample vectors X = {x1; x2;…; xn}
+        n (_type_): number of clusters
+    """
+    
+    W = create_digraph(X)
     P = compute_P(W)
+    C = X # Initially, each point is its own cluster
+    nc = C.shape[0]
+        
+    while nc > nt: # C_a, C_b
+        S_Ca_given_CaUCb = compute_incremental_path_integral()
+        A_Ca_Cb = 
+        nc = nc - 1
+        
+    
 
-# Runs Agglome1rative clustering via maximum incremental path integral.
-def run():
-    pass
-
-if __name__ == "main":
+if __name__ == "__main__":
     run()
