@@ -4,7 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-from tensorflow.keras.datasets import mnist
+import tensorflow as tf
 from torchvision.datasets import USPS
 
 def download_mnist():
@@ -62,7 +62,7 @@ def get_mnist_images():
     - 1135 max cluster size
     - 784 dimensionality
     """
-    _, (x_test, y_test) = mnist.load_data()
+    _, (x_test, y_test) = tf.keras.datasets.mnist.load_data()
     
     mask = np.isin(y_test, [0, 1, 2, 3, 4])
     images, labels = x_test[mask], y_test[mask]
@@ -73,7 +73,7 @@ def get_mnist_images():
     return images, labels
 
 if __name__ == "__main__":
-    images_x, image_y = get_usps_images()
+    images_x, image_y = get_mnist_images()
 
     plt.figure(figsize=(10, 5))
     for i in range(5):
