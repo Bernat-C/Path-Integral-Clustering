@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial import KDTree
 from path_integral import compute_incremental_path_integral, compute_path_integral
+from sklearn.metrics import normalized_mutual_info_score
 
 # Euclidean distance (for now)
 def dist(xi, xj):
