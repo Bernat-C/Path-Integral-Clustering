@@ -1,7 +1,10 @@
 import numpy as np
+import heapq
 from scipy.spatial import KDTree
 from path_integral import compute_incremental_path_integral, compute_path_integral
 from sklearn.metrics import normalized_mutual_info_score
+from data import make_blobs
+from visualize import visualize_clusters
 
 # Euclidean distance (for now)
 def dist(xi, xj):
@@ -67,25 +70,90 @@ def create_digraph(X, k=3, a=0):
 
     return W
 
-def run(X, nt):
-    """ Runs Agglome1rative clustering via maximum incremental path integral.
+def compute_affinity(Ca, Cb): # Equation 3
+    """ Affinity
 
     Args:
-        X (_type_): set of n sample vectors X = {x1; x2;…; xn}
-        n (_type_): number of clusters
+        Ca (np.array): [[x1],[x2]...[xn]]
+        Cb (np.array): [[x1],[x2]...[xn]]
+
+    Returns:
+        float: affinity
+    """
+    S_Ca = compute_path_integral()
+    S_Cb = compute_path_integral()
+    S_Ca_given_CaUCb = compute_incremental_path_integral()
+    S_Cb_given_CaUCb = compute_incremental_path_integral()
+
+    return (S_Ca_given_CaUCb - S_Ca) + (S_Cb_given_CaUCb - S_Cb)
+
+def union(Ca, Cb):
+    """ Performs Ca U Cb
+
+    Args:
+        Ca (np.array)
+        Cb (np.array)
+
+    Returns:
+        np.array
+    """
+    return np.concatenate((Ca,Cb))
+
+def run(X, nt):
+    """ Runs Agglomerative clustering via maximum incremental path integral.
+
+    Args:
+        X (np.array): set of n sample vectors X = {x1; x2;…; xn}
+        nt (int): target number of clusters
     """
     
     W = create_digraph(X)
     P = compute_P(W)
-    C = X # Initially, each point is its own cluster
+
+    # C should be computed using nearest neighbour merging.
+    C = X.reshape(-1, 1) # Initially, each point is its own cluster [[x1],[x2],...[xn]]
     nc = C.shape[0]
         
-    while nc > nt: # C_a, C_b
-        S_Ca_given_CaUCb = compute_incremental_path_integral()
-        A_Ca_Cb = 
+    # Find clusters inside C that maximize the affinity measure
+    if nc < 2:
+        return C
+
+    max_heap = []
+    for i in range(nc):
+        for j in range(i + 1, nc):
+            affinity = compute_affinity(C[i], C[j])
+            heapq.heappush(max_heap, (-affinity, i, j))  # Store negative affinity for max heap
+    
+    while nc > nt and len(C) > 1:
+        # Get the most similar pair
+        _, i, j = heapq.heappop(max_heap)
+        if i >= len(C) or j >= len(C):  # Ignore if index is outdated due to previous merges
+            continue
+
+        # Merge the two elements
+        merged = union(C[i], C[j])
+
+        # Remove old elements and add merged element
+        del C[max(i, j)]  # Remove the larger index first
+        del C[min(i, j)]
+        C.append(merged)
+
+        # Update affinities with the new element
+        new_idx = nc - 1
+        for k in range(new_idx):  # Compute affinity with all previous elements
+            affinity = compute_affinity(C[k], merged)
+            heapq.heappush(max_heap, (-affinity, k, new_idx))  # Push new affinities to the heap
         nc = nc - 1
-        
+    
+    return C
     
 
 if __name__ == "__main__":
-    run()
+    ninstances = 300
+    nt = 3
+
+    data = make_blobs(ninstances,nt)
+
+    C = run(data, nt)
+
+    visualize_clusters(data, C)
