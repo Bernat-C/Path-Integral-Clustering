@@ -3,14 +3,13 @@ import os
 import kagglehub
 import numpy as np
 import matplotlib.pyplot as plt
-import tensorflow as tf
 from torchvision.datasets import USPS
 from sklearn.datasets import make_blobs
 
-def make_blobs(n_samples=300, n_clusters=3, random_state=42):
+def generate_synthetic(n_samples, n_features, random_state=42):
     """Generate a simple 2D clustering dataset using make_blobs."""
-    X, _ = make_blobs(n_samples=n_samples, n_clusters=n_clusters, random_state=random_state)
-    return X
+    X, y = make_blobs(n_samples=n_samples, n_features=n_features, random_state=random_state)
+    return X, y
 
 def download_mnist():
     """
@@ -42,7 +41,8 @@ def load_mnist():
     - 1135 max cluster size
     - 784 dimensionality
     """
-    _, (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    from tensorflow.keras.datasets import mnist
+    _, (x_test, y_test) = mnist.load_data()
     
     mask = np.isin(y_test, [0, 1, 2, 3, 4])
     images, labels = x_test[mask], y_test[mask]

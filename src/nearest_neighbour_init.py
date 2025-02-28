@@ -1,3 +1,4 @@
+import tqdm
 import numpy as np
 from scipy.spatial.distance import cdist
 
@@ -52,16 +53,26 @@ def merge_clusters(samples, clusters):
                 new_clusters.append(cluster)
         
         # Update clusters with the merged ones
-        clusters = np.array(new_clusters)
+        clusters = new_clusters
     
     return clusters
 
 # Main function to run the clustering process
-def cluster_samples(samples):
-    # Step 1: Initialize clusters
-    clusters = initialize_clusters(samples)
+def cluster_init(X):
+    """ Generates initial clusters using nearest neighbours merging.
+
+    We use a simple nearest neighbor merging algorithm to obtain initial clusters. 
+    First, each sample and its nearest neighbor form a cluster and we obtain 
+    n clusters, each of which has two samples.
+    Then, the clusters are merged to remove duplicated samples,
+    i.e., we merge two clusters if their intersection is nonempty, until the
+    number of clusters cannot be reduced.
+
+    """
+    # Step 1: Initialize clusters with their neighbour
+    clusters = initialize_clusters(X)
     
     # Step 2: Merge clusters until no more merges can be done
-    final_clusters = merge_clusters(samples, clusters)
+    final_clusters = merge_clusters(X, clusters)
     
     return final_clusters

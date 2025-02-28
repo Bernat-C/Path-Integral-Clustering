@@ -3,9 +3,9 @@ import heapq
 from scipy.spatial import KDTree
 from path_integral import compute_incremental_path_integral, compute_path_integral
 from sklearn.metrics import normalized_mutual_info_score
-from sklearn.datasets import make_blobs
 from visualize import visualize_clusters
-from nearest_neighbour_init import cluster_samples
+from data import generate_synthetic
+from nearest_neighbour_init import cluster_init
 
 # Euclidean distance (for now)
 def dist(xi, xj):
@@ -105,20 +105,26 @@ def union(Ca, Cb):
     """
     return np.concatenate((Ca,Cb))
 
-def cluster_init(X):
-    """ Generates initial clusters using nearest neighbours merging.
+def transform_to_assignments(clusters):
+    # Create an empty list to hold the cluster assignments
+    assignments = []
+    
+    # Iterate over each cluster and assign the cluster number to each element
+    for cluster_id, cluster in enumerate(clusters):
+        for index in cluster:
+            # Add the cluster_id (representing the cluster number) to the assignments list
+            assignments.append((index, cluster_id))
+    
+    # Sort assignments based on the original indices
+    assignments.sort(key=lambda x: x[0])
+    
+    # Extract the cluster ids for the sorted list of indices
+    result = [cluster_id for index, cluster_id in assignments]
+    
+    return result
 
-    We use a simple nearest neighbor merging algorithm
-    to obtain initial clusters. First, each sample and its nearest neighbor
-    form a cluster and we obtain n clusters, each of which has two
-    samples. Then, the clusters are merged to remove duplicated samples,
-    i.e., we merge two clusters if their intersection is nonempty, until the
-    number of clusters cannot be reduced.
 
-    """
-    pass
-
-def run(X, nt, z):
+def run(X, C, nt, z):
     """ Runs Agglomerative clustering via maximum incremental path integral.
 
     Args:
@@ -128,10 +134,7 @@ def run(X, nt, z):
     
     W = create_digraph(X,k=3,a=0)
     P = compute_P(W)
-
-    # C should be computed using nearest neighbour merging.
-    nc = len(X)
-    C = np.arange(nc).reshape(-1, 1) # Initially, each point is its own cluster [[0],[1],...[n]]
+    nc = len(C)
         
     # Find clusters inside C that maximize the affinity measure
     if nc < 2:
@@ -167,15 +170,19 @@ def run(X, nt, z):
     return C
 
 if __name__ == "__main__":
-    n_samples = 300
+    n_samples = 50
     nt = 3
     
-    data, _ = make_blobs(n_samples=n_samples, n_features=nt, random_state=42)
+    print("Generating data")
+    data, y_true = generate_synthetic(n_samples=n_samples, n_features=nt, random_state=42)
 
-    #C = run(data,nt,z=1)
-    C = cluster_samples(data)
+    print("Initializing clusters")
+    C = cluster_init(data)
+
+    C = run(data,C,nt,z=1)
 
     visualize_clusters(data, C)
 
-    #nmis = normalized_mutual_info_score()
-    #print(f"Normalized mutual information score {nmis}")
+    y_pred = transform_to_assignments(C)
+    nmis = normalized_mutual_info_score(y_true,y_pred)
+    print(f"Normalized mutual information score {nmis}")
