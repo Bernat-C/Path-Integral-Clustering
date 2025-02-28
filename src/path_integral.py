@@ -28,7 +28,7 @@ def compute_path_integral(Pc, z):
     return S_c
 
 
-def compute_incremental_path_integral(C_a, C_b, P, z=1.0):
+def compute_incremental_path_integral(C_a, C_b, P_CaUb, z=1.0):
     """
     Compute the incremental path integral as per equation (12).
     
@@ -41,16 +41,13 @@ def compute_incremental_path_integral(C_a, C_b, P, z=1.0):
     Returns:
     - Incremental path integral value.
     """
-    # Combine clusters to get the submatrix P_CaUb
-    C_a_union_C_b = np.array(C_a + C_b)
-    C_size = len(C_a_union_C_b)
-    P_CaUb = P[np.ix_(C_a_union_C_b, C_a_union_C_b)]  # Extract submatrix
+    C_size = len(P_CaUb)
 
     # Identity matrix of same shape as P_CaUb
     I = identity(C_size, format='csc')
 
     # Create indicator vector 1_Ca (same size as C_a_union_C_b)
-    ones_Ca = np.zeros(len(C_a_union_C_b))
+    ones_Ca = np.zeros(C_size)
     ones_Ca[:len(C_a)] = 1  # Set first |C_a| elements to 1
     
     # Compute (I - Z * P_CaUb)^(-1)

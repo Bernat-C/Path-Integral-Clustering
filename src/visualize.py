@@ -6,7 +6,7 @@ def visualize_clusters(X, clusters):
     plt.figure(figsize=(8, 6))
     
     for cluster_idx, points in enumerate(clusters):
-        cluster_points = np.array(points)  # Convert list to NumPy array
+        cluster_points = np.array([X[p] for p in points])  # Convert list to NumPy array
         plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label=f"Cluster {cluster_idx}")
 
     plt.xlabel("Feature 1")

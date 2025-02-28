@@ -70,20 +70,25 @@ def create_digraph(X, k=3, a=0):
 
     return W
 
-def compute_affinity(Ca, Cb): # Equation 3
+def compute_affinity(P, Ca, Cb, z): # Equation 3
     """ Affinity
 
     Args:
-        Ca (np.array): [[x1],[x2]...[xn]]
-        Cb (np.array): [[x1],[x2]...[xn]]
+        Ca (np.array): [[1],[2]...[n]]
+        Cb (np.array): [[1],[2]...[n]]
 
     Returns:
         float: affinity
     """
-    S_Ca = compute_path_integral()
-    S_Cb = compute_path_integral()
-    S_Ca_given_CaUCb = compute_incremental_path_integral()
-    S_Cb_given_CaUCb = compute_incremental_path_integral()
+    Pa = P[np.ix_(Ca,Ca)]
+    Pb = P[np.ix_(Cb,Cb)]
+    selected_indices = np.concat(Ca,Cb)
+    Pab = P[np.ix_(selected_indices, selected_indices)]
+
+    S_Ca = compute_path_integral(Pa,z)
+    S_Cb = compute_path_integral(Pb,z)
+    S_Ca_given_CaUCb = compute_incremental_path_integral(Ca,Cb,Pab,z)
+    S_Cb_given_CaUCb = compute_incremental_path_integral(Cb,Ca,Pab,z)
 
     return (S_Ca_given_CaUCb - S_Ca) + (S_Cb_given_CaUCb - S_Cb)
 
@@ -99,7 +104,7 @@ def union(Ca, Cb):
     """
     return np.concatenate((Ca,Cb))
 
-def run(X, nt):
+def run(X, nt, z):
     """ Runs Agglomerative clustering via maximum incremental path integral.
 
     Args:
@@ -111,8 +116,8 @@ def run(X, nt):
     P = compute_P(W)
 
     # C should be computed using nearest neighbour merging.
-    C = X.reshape(-1, 1) # Initially, each point is its own cluster [[x1],[x2],...[xn]]
-    nc = C.shape[0]
+    nc = len(X)
+    C = np.arange(nc).reshape(-1, 1) # Initially, each point is its own cluster [[0],[1],...[n]]
         
     # Find clusters inside C that maximize the affinity measure
     if nc < 2:
@@ -121,7 +126,7 @@ def run(X, nt):
     max_heap = []
     for i in range(nc):
         for j in range(i + 1, nc):
-            affinity = compute_affinity(C[i], C[j])
+            affinity = compute_affinity(P, C[i], C[j], z)
             heapq.heappush(max_heap, (-affinity, i, j))  # Store negative affinity for max heap
     
     while nc > nt and len(C) > 1:
@@ -141,7 +146,7 @@ def run(X, nt):
         # Update affinities with the new element
         new_idx = nc - 1
         for k in range(new_idx):  # Compute affinity with all previous elements
-            affinity = compute_affinity(C[k], merged)
+            affinity = compute_affinity(P, C[k], merged, z)
             heapq.heappush(max_heap, (-affinity, k, new_idx))  # Push new affinities to the heap
         nc = nc - 1
     
@@ -154,6 +159,9 @@ if __name__ == "__main__":
 
     data = make_blobs(ninstances,nt)
 
-    C = run(data, nt)
+    C = run(data,nt,z=1)
 
     visualize_clusters(data, C)
+
+    nmis = normalized_mutual_info_score()
+    print(f"Normalized mutual information score {nmis}")
