@@ -1,0 +1,67 @@
+import numpy as np
+from scipy.spatial.distance import cdist
+
+# Function to find nearest neighbors using Euclidean distance
+def find_nearest_neighbors(samples):
+    # Compute pairwise distances between all samples
+    distances = cdist(samples, samples)
+    np.fill_diagonal(distances, np.inf)  # Ignore self-distances
+    nearest_indices = np.argmin(distances, axis=1)  # Get nearest neighbors' indices
+    return nearest_indices
+
+# Function to initialize clusters
+def initialize_clusters(samples):
+    nearest_indices = find_nearest_neighbors(samples)
+    n_samples = len(samples)
+    
+    # Initialize clusters as a numpy array of shape (n_samples, 2)
+    clusters = np.array([[i, nearest_indices[i]] for i in range(n_samples)])
+    return clusters
+
+# Function to merge clusters
+def merge_clusters(samples, clusters):
+    merged = True
+    while merged:
+        merged = False
+        # Create an array to track which clusters are already merged
+        to_merge = np.zeros(len(clusters), dtype=bool)
+        
+        new_clusters = []
+        for i in range(len(clusters)):
+            if to_merge[i]:  # If this cluster has already been merged, skip it
+                continue
+            
+            cluster = clusters[i]
+            merged_cluster = None
+            for j in range(i + 1, len(clusters)):
+                if to_merge[j]:  # If the other cluster is already merged, skip it
+                    continue
+                # Check for intersection (any common sample between clusters)
+                if np.intersect1d(cluster, clusters[j]).size > 0:
+                    # Merge the clusters by combining them
+                    merged_cluster = np.union1d(cluster, clusters[j])
+                    to_merge[j] = True
+                    break
+            
+            if merged_cluster is not None:
+                # Add merged cluster to the new clusters list
+                new_clusters.append(merged_cluster)
+                merged = True
+            else:
+                # If no merge, retain the current cluster
+                new_clusters.append(cluster)
+        
+        # Update clusters with the merged ones
+        clusters = np.array(new_clusters)
+    
+    return clusters
+
+# Main function to run the clustering process
+def cluster_samples(samples):
+    # Step 1: Initialize clusters
+    clusters = initialize_clusters(samples)
+    
+    # Step 2: Merge clusters until no more merges can be done
+    final_clusters = merge_clusters(samples, clusters)
+    
+    return final_clusters

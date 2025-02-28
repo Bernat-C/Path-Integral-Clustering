@@ -3,8 +3,9 @@ import heapq
 from scipy.spatial import KDTree
 from path_integral import compute_incremental_path_integral, compute_path_integral
 from sklearn.metrics import normalized_mutual_info_score
-from data import make_blobs
+from sklearn.datasets import make_blobs
 from visualize import visualize_clusters
+from nearest_neighbour_init import cluster_samples
 
 # Euclidean distance (for now)
 def dist(xi, xj):
@@ -55,7 +56,7 @@ def compute_P(W):
 
     return P
 
-def create_digraph(X, k=3, a=0):
+def create_digraph(X, k, a):
     X = np.asarray(X)
     n = X.shape[0]
     # Compute parameters
@@ -104,6 +105,19 @@ def union(Ca, Cb):
     """
     return np.concatenate((Ca,Cb))
 
+def cluster_init(X):
+    """ Generates initial clusters using nearest neighbours merging.
+
+    We use a simple nearest neighbor merging algorithm
+    to obtain initial clusters. First, each sample and its nearest neighbor
+    form a cluster and we obtain n clusters, each of which has two
+    samples. Then, the clusters are merged to remove duplicated samples,
+    i.e., we merge two clusters if their intersection is nonempty, until the
+    number of clusters cannot be reduced.
+
+    """
+    pass
+
 def run(X, nt, z):
     """ Runs Agglomerative clustering via maximum incremental path integral.
 
@@ -112,7 +126,7 @@ def run(X, nt, z):
         nt (int): target number of clusters
     """
     
-    W = create_digraph(X)
+    W = create_digraph(X,k=3,a=0)
     P = compute_P(W)
 
     # C should be computed using nearest neighbour merging.
@@ -151,17 +165,17 @@ def run(X, nt, z):
         nc = nc - 1
     
     return C
-    
 
 if __name__ == "__main__":
-    ninstances = 300
+    n_samples = 300
     nt = 3
+    
+    data, _ = make_blobs(n_samples=n_samples, n_features=nt, random_state=42)
 
-    data = make_blobs(ninstances,nt)
-
-    C = run(data,nt,z=1)
+    #C = run(data,nt,z=1)
+    C = cluster_samples(data)
 
     visualize_clusters(data, C)
 
-    nmis = normalized_mutual_info_score()
-    print(f"Normalized mutual information score {nmis}")
+    #nmis = normalized_mutual_info_score()
+    #print(f"Normalized mutual information score {nmis}")

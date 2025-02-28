@@ -9,7 +9,7 @@ from sklearn.datasets import make_blobs
 
 def make_blobs(n_samples=300, n_clusters=3, random_state=42):
     """Generate a simple 2D clustering dataset using make_blobs."""
-    X, _ = make_blobs(n_samples=n_samples, centers=n_clusters, random_state=random_state)
+    X, _ = make_blobs(n_samples=n_samples, n_clusters=n_clusters, random_state=random_state)
     return X
 
 def download_mnist():
