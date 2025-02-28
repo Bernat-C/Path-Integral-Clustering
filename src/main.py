@@ -31,7 +31,7 @@ def sigma_squared(data, knn3i, a): # a to be set
 # knn is the indices of the K nearest neighbours. K to be set.
 def pairwise_similarity(data, i, j, knn, sigma2):
     if j in knn[i]:
-        np.exp(-dist(data[i],data[j]) ** 2 / sigma2)
+        return np.exp(-dist(data[i],data[j]) ** 2 / sigma2)
     else:
         return 0
     
@@ -170,7 +170,7 @@ def run(X, C, nt, z):
     return C
 
 if __name__ == "__main__":
-    n_samples = 50
+    n_samples = 10
     nt = 3
     
     print("Generating data")
