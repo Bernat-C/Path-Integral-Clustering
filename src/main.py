@@ -1,10 +1,13 @@
 import numpy as np
 import heapq
+import tqdm
 from scipy.spatial import KDTree
 from path_integral import compute_incremental_path_integral, compute_path_integral
 from sklearn.metrics import normalized_mutual_info_score
 from visualize import visualize_clusters
 from data import generate_synthetic
+from scipy.optimize import linear_sum_assignment
+from sklearn.metrics import confusion_matrix
 from nearest_neighbour_init import cluster_init
 
 # Euclidean distance (for now)
@@ -17,23 +20,24 @@ def k_nearest_neighbors(data, k): # Do it once and return 3 and k
     return indices[:, 1:], distances[:, 1:]  # Remove self (0th neighbor)
 
 
-def sigma_squared(data, knn3i, a): # a to be set
+def sigma_squared(data, knn3_dis, a): # a to be set
     n = data.shape[0]
     
-    neighbors = data[knn3i]
-    squared_dists = np.sum((data[:, None, :] - neighbors) ** 2, axis=2)  
+    squared_dists = np.sum(knn3_dis ** 2)  
     den = -3*n*np.log(a)
-
+        
     return squared_dists / den
 
+# knn is the indices of the K nearest neighbours. K to be set.    
+def pairwise_similarity_matrix(data, knn, sigma2):
+    n = len(data)
+    W = np.zeros((n, n))  # Initialize the similarity matrix
 
-# i and j are indices
-# knn is the indices of the K nearest neighbours. K to be set.
-def pairwise_similarity(data, i, j, knn, sigma2):
-    if j in knn[i]:
-        return np.exp(-dist(data[i],data[j]) ** 2 / sigma2)
-    else:
-        return 0
+    for i in range(n):
+        for j in knn[i]:  # Only compute for k-nearest neighbors
+            W[i, j] = np.exp(-dist(data[i], data[j]) ** 2 / sigma2)
+
+    return W
     
 def get_edges(W):
     E = []
@@ -62,12 +66,13 @@ def create_digraph(X, k, a):
     # Compute parameters
     knn_ind, knn_dis = k_nearest_neighbors(X,k)
     knn3_ind, knn3_dis = k_nearest_neighbors(X,3)
-    sigma2 = sigma_squared(X,knn3_ind,a)
-    
+    sigma2 = sigma_squared(X,knn3_dis,a)
+        
     #a = np.prod(W, axis=1) ** (1/3)
 
     # Weighted adjacency matrix
-    W = np.fromfunction(np.vectorize(lambda i, j: pairwise_similarity(X,i,j,knn_ind,sigma2)), (n, n), dtype=int)
+    #W = np.fromfunction(np.vectorize(lambda i, j: pairwise_similarity(X,i,j,knn_ind,sigma2)), (n, n), dtype=int)
+    W = pairwise_similarity_matrix(X, knn_ind, sigma2)
 
     return W
 
@@ -80,30 +85,22 @@ def compute_affinity(P, Ca, Cb, z): # Equation 3
 
     Returns:
         float: affinity
-    """
+    """    
     Pa = P[np.ix_(Ca,Ca)]
     Pb = P[np.ix_(Cb,Cb)]
-    selected_indices = np.concat(Ca,Cb)
+    selected_indices = np.append(Ca,Cb)
     Pab = P[np.ix_(selected_indices, selected_indices)]
 
     S_Ca = compute_path_integral(Pa,z)
+    #print(f"S_Ca: {S_Ca}")
     S_Cb = compute_path_integral(Pb,z)
+    #print(f"S_Cb: {S_Cb}")
     S_Ca_given_CaUCb = compute_incremental_path_integral(Ca,Cb,Pab,z)
+    #print(f"SCa given CaUb: {S_Ca_given_CaUCb}")
     S_Cb_given_CaUCb = compute_incremental_path_integral(Cb,Ca,Pab,z)
+    #print(f"SCb given CaUb: {S_Cb_given_CaUCb}")
 
     return (S_Ca_given_CaUCb - S_Ca) + (S_Cb_given_CaUCb - S_Cb)
-
-def union(Ca, Cb):
-    """ Performs Ca U Cb
-
-    Args:
-        Ca (np.array)
-        Cb (np.array)
-
-    Returns:
-        np.array
-    """
-    return np.concatenate((Ca,Cb))
 
 def transform_to_assignments(clusters):
     # Create an empty list to hold the cluster assignments
@@ -123,66 +120,132 @@ def transform_to_assignments(clusters):
     
     return result
 
+def clustering_error(y_true, y_pred):
+    """
+    Computes the clustering error
+    
+    Parameters:
+        y_true (numpy.ndarray): Ground truth labels.
+        y_pred (numpy.ndarray): Cluster labels from the algorithm.
+    
+    Returns:
+        float: Clustering error (misclassification rate).
+    """
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
 
-def run(X, C, nt, z):
+    # Solve the assignment problem (Hungarian algorithm) to maximize correct assignments
+    row_ind, col_ind = linear_sum_assignment(-cm)  # Maximize correct pairs
+
+    # Compute the total number of correctly assigned points
+    correct = cm[row_ind, col_ind].sum()
+    
+    # Compute clustering error
+    error = 1 - (correct / len(y_true))
+    return error
+
+def run(X, C, nt, z=0.01, a=0.95, K=20):
     """ Runs Agglomerative clustering via maximum incremental path integral.
 
     Args:
         X (np.array): set of n sample vectors X = {x1; x2;…; xn}
+        C (np.array): cluster initializations
         nt (int): target number of clusters
     """
+    assert(K<=len(X))
     
-    W = create_digraph(X,k=3,a=0)
+    W = create_digraph(X,k=K,a=a) # a can't be 0 nor 1 (inf)
     P = compute_P(W)
+    
     nc = len(C)
-        
-    # Find clusters inside C that maximize the affinity measure
     if nc < 2:
-        return C
-
+        return C # Nothing to merge
+    
     max_heap = []
-    for i in range(nc):
+    # affinity_dict = {}
+    for i in tqdm.tqdm(range(nc),desc="Computing initial cluster's affinities."):
         for j in range(i + 1, nc):
             affinity = compute_affinity(P, C[i], C[j], z)
             heapq.heappush(max_heap, (-affinity, i, j))  # Store negative affinity for max heap
+            # affinity_dict[(i, j)] = affinity
     
-    while nc > nt and len(C) > 1:
+    # print(np.array(af))
+    active_clusters = set(range(nc))
+    
+    print("The clustering process has begun")
+    while len(active_clusters) > nt:
         # Get the most similar pair
-        _, i, j = heapq.heappop(max_heap)
-        if i >= len(C) or j >= len(C):  # Ignore if index is outdated due to previous merges
-            continue
-
+        while max_heap:
+            _, i, j = heapq.heappop(max_heap)
+            if i in active_clusters and j in active_clusters:
+                break  # Found valid cluster pair
+        else:
+            break
+        
         # Merge the two elements
-        merged = union(C[i], C[j])
+        merged = np.append(C[i], C[j])
 
         # Remove old elements and add merged element
-        del C[max(i, j)]  # Remove the larger index first
-        del C[min(i, j)]
+        active_clusters.remove(i)
+        active_clusters.remove(j)
         C.append(merged)
+        new_idx = len(C) - 1
+        active_clusters.add(new_idx)
+        
+        #print(f"Merged clusters {i} and {j} -> New cluster {new_idx}")
 
         # Update affinities with the new element
-        new_idx = nc - 1
-        for k in range(new_idx):  # Compute affinity with all previous elements
+        for k in active_clusters - {new_idx}:  # Compute affinity with all previous elements excluding itself
             affinity = compute_affinity(P, C[k], merged, z)
             heapq.heappush(max_heap, (-affinity, k, new_idx))  # Push new affinities to the heap
-        nc = nc - 1
+            # affinity_dict[(k, new_idx)] = affinity
     
-    return C
+    #print(f"Ended run with |C|:{len(C)} |AC|:{len(active_clusters)} with nt:{nt}")
+    return [C[i] for i in active_clusters]
 
-if __name__ == "__main__":
-    n_samples = 10
+def test1():
+    n_samples = 100
     nt = 3
     
     print("Generating data")
     data, y_true = generate_synthetic(n_samples=n_samples, n_features=nt, random_state=42)
 
     print("Initializing clusters")
-    C = cluster_init(data)
-
-    C = run(data,C,nt,z=1)
+    #C = cluster_init(data)
+    #print(C)
+    C = [[1,2,9],[0,3,4,5],[6,7,8]]
+    
+    C = run(data,C,nt,z=0.01,a=0.95,K=5)
 
     visualize_clusters(data, C)
 
     y_pred = transform_to_assignments(C)
     nmis = normalized_mutual_info_score(y_true,y_pred)
+    ce = clustering_error(y_true,y_pred)
     print(f"Normalized mutual information score {nmis}")
+    print(f"Clustering error {ce}")
+
+def test2():
+    n_samples = 300
+    n_features = 2
+    nt = 5
+    
+    print("Generating data")
+    data, y_true = generate_synthetic(n_samples=n_samples, n_features=n_features, centers=nt)
+
+    print("Initializing clusters")
+    C = cluster_init(data)
+    #visualize_clusters(data, C, title="Clustering initialization")
+    
+    C = run(data,C,nt,z=0.01,a=0.95,K=20)
+
+    visualize_clusters(data, C, title="Definitive clusters")
+
+    y_pred = transform_to_assignments(C)
+    nmis = normalized_mutual_info_score(y_true,y_pred)
+    ce = clustering_error(y_true,y_pred)
+    print(f"Normalized mutual information score {nmis}")
+    print(f"Clustering error {ce}")
+    
+if __name__ == "__main__":
+    test2()

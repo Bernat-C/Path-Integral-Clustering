@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from torchvision.datasets import USPS
 from sklearn.datasets import make_blobs
 
-def generate_synthetic(n_samples, n_features, random_state=42):
+def generate_synthetic(n_samples, n_features, centers):
     """Generate a simple 2D clustering dataset using make_blobs."""
-    X, y = make_blobs(n_samples=n_samples, n_features=n_features, random_state=random_state)
+    X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers)
     return X, y
 
 def download_mnist():

@@ -5,11 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File",
+            "name": "Python",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}",
+            "stopOnEntry": true,
+            "program": "main.py",  // Specify the full path to your file
             "console": "integratedTerminal"
-        }
+         },
     ]
 }

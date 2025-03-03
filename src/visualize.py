@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def visualize_clusters(X, clusters):
+def visualize_clusters(X, clusters,title="Clustering Visualization"):
     """Visualizes clustered data in 2D."""
     plt.figure(figsize=(8, 6))
     
@@ -11,6 +11,6 @@ def visualize_clusters(X, clusters):
 
     plt.xlabel("Feature 1")
     plt.ylabel("Feature 2")
-    plt.title("Clustering Visualization")
+    plt.title(title)
     plt.legend()
     plt.show()
