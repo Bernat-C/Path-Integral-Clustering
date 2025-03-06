@@ -15,17 +15,19 @@ def test_compute_affinity():
     z = 0.5  # Arbitrary weight parameter
 
     # Compute affinity
-    affinity = compute_affinity(P, Ca, Cb, z)
+    affinityA = compute_affinity(P, Ca, Cb, z)
+    affinityB = compute_affinity(P, Cb, Ca, z)
 
     # Print results
     print("Affinity matrix P:\n", P)
     print("\nCluster Ca indices:", Ca)
     print("Cluster Cb indices:", Cb)
-    print("\nComputed Affinity:", affinity)
+    print("\nComputed Affinity:", affinityA)
 
     # Assertions for correctness
-    assert isinstance(affinity, float), "Affinity should be a float"
-    assert affinity >= 0, "Affinity should be non-negative (assuming positive matrix elements)"
+    assert affinityA != affinityB, f"Affinity is simetrical A: {affinityA}, B: {affinityB}"
+    assert isinstance(affinityA, float), "Affinity should be a float"
+    assert affinityA >= 0, "Affinity should be non-negative (assuming positive matrix elements)"
     
 test_compute_affinity()
 # P = np.array([[0.1, 0.5, 0.4], 

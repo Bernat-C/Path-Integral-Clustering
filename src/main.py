@@ -5,7 +5,7 @@ from scipy.spatial import KDTree
 from path_integral import compute_incremental_path_integral, compute_path_integral
 from sklearn.metrics import normalized_mutual_info_score
 from visualize import visualize_clusters
-from data import generate_synthetic
+from data import generate_synthetic, load_usps
 from scipy.optimize import linear_sum_assignment
 from sklearn.metrics import confusion_matrix
 from nearest_neighbour_init import cluster_init
@@ -203,30 +203,8 @@ def run(X, C, nt, z=0.01, a=0.95, K=20):
     #print(f"Ended run with |C|:{len(C)} |AC|:{len(active_clusters)} with nt:{nt}")
     return [C[i] for i in active_clusters]
 
-def test1():
-    n_samples = 100
-    nt = 3
-    
-    print("Generating data")
-    data, y_true = generate_synthetic(n_samples=n_samples, n_features=nt, random_state=42)
-
-    print("Initializing clusters")
-    #C = cluster_init(data)
-    #print(C)
-    C = [[1,2,9],[0,3,4,5],[6,7,8]]
-    
-    C = run(data,C,nt,z=0.01,a=0.95,K=5)
-
-    visualize_clusters(data, C)
-
-    y_pred = transform_to_assignments(C)
-    nmis = normalized_mutual_info_score(y_true,y_pred)
-    ce = clustering_error(y_true,y_pred)
-    print(f"Normalized mutual information score {nmis}")
-    print(f"Clustering error {ce}")
-
-def test2():
-    n_samples = 300
+def test_synthetic():
+    n_samples = 200
     n_features = 2
     nt = 5
     
@@ -247,5 +225,25 @@ def test2():
     print(f"Normalized mutual information score {nmis}")
     print(f"Clustering error {ce}")
     
+def test_usps():
+    nt = 10
+    
+    print("Generating data")
+    data, y_true = load_usps()
+
+    print("Initializing clusters")
+    C = cluster_init(data)
+    #visualize_clusters(data, C, title="Clustering initialization")
+    
+    C = run(data,C,nt,z=0.01,a=0.95,K=20)
+
+    visualize_clusters(data, C, title="Definitive clusters")
+
+    y_pred = transform_to_assignments(C)
+    nmis = normalized_mutual_info_score(y_true,y_pred)
+    ce = clustering_error(y_true,y_pred)
+    print(f"Normalized mutual information score {nmis}")
+    print(f"Clustering error {ce}")
+    
 if __name__ == "__main__":
-    test2()
+    test_usps()
