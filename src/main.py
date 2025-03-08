@@ -182,13 +182,12 @@ def run(X, C, nt, z=0.01, a=0.95, K=20):
             _, i, j = heapq.heappop(max_heap)
             #print(f"{i} - {j} is a candidate.")
             if i in active_clusters and j in active_clusters:
-                print(f"Cluster {i} {j} are the most affine.")
+                # print(f"Cluster {i} {j} are the most affine.")
                 break  # Found valid cluster pair
         else:
             break
         
         #visualize_clusters(X,C,active_clusters)
-        # Merge the two elements
         merged = np.append(C[i], C[j])
 
         # Remove old elements and add merged element
@@ -204,15 +203,14 @@ def run(X, C, nt, z=0.01, a=0.95, K=20):
         for k in active_clusters - {new_idx}:  # Compute affinity with all previous elements excluding itself
             affinity =  compute_affinity(P, C[k], merged, z)#compute_affinity_single_link(D,C[k],merged)
             heapq.heappush(max_heap, (-affinity, k, new_idx))  # Push new affinities to the heap
-            # affinity_dict[(k, new_idx)] = affinity
     
     #print(f"Ended run with |C|:{len(C)} |AC|:{len(active_clusters)} with nt:{nt}")
     return [C[i] for i in active_clusters]
 
 def test_synthetic():
-    n_samples = 200
+    n_samples = 500
     n_features = 2
-    nt = 4
+    nt = 10
     
     print("Generating data")
     data, y_true = generate_synthetic(n_samples=n_samples, n_features=n_features, centers=nt)
@@ -221,7 +219,7 @@ def test_synthetic():
     C = cluster_init(data)
     #visualize_clusters(data, C, range(len(C)), title="Clustering initialization")
     
-    C = run(data,C,nt,z=0.01,a=0.95,K=10)
+    C = run(data,C,nt,z=0.01,a=0.95,K=20)
 
     visualize_clusters(data, C, range(len(C)), title="Definitive clusters")
 
