@@ -28,7 +28,7 @@ def compute_path_integral(Pc, z):
     return S_c
 
 
-def compute_incremental_path_integral(C_a, C_b, P_CaUb, z):
+def compute_incremental_path_integral(C_a, C_b, P, z):
     """
     Compute the incremental path integral as per equation (12).
     
@@ -41,8 +41,10 @@ def compute_incremental_path_integral(C_a, C_b, P_CaUb, z):
     Returns:
     - Incremental path integral value.
     """
-    C_size = len(P_CaUb)
     C_a_union_C_b = sorted(np.append(C_a,C_b))
+    P_CaUb = P[np.ix_(C_a_union_C_b, C_a_union_C_b)]
+
+    C_size = len(P_CaUb)
 
     # Identity matrix of same shape as P_CaUb
     I = identity(C_size, format='csc')
@@ -79,3 +81,36 @@ def compute_incremental_path_integral(C_a, C_b, P_CaUb, z):
     S_Ca_given_CaUb = (1 / len(C_a)**2) * np.dot(ones_Ca.T, y)
     
     return S_Ca_given_CaUb
+
+def compute_incremental_path_integral_inefficient(Ca, Cb, P, z):
+    """
+    Computes the incremental path integral S_{Ca | Ca ∪ Cb}.
+
+    Parameters:
+    Ca : List or set of indices representing cluster Ca.
+    Cb : List or set of indices representing cluster Cb.
+    P  : 2D numpy array, transition probability matrix.
+    z  : Scalar value.
+
+    Returns:
+    float : Incremental path integral value.
+    """
+    # Combine indices for the submatrix extraction
+    C_union = sorted(np.append(Ca,Cb)) # Sorted to maintain order
+
+    # Create the submatrix P_Ca∪Cb
+    P_C_union = P[np.ix_(C_union, C_union)]
+
+    # Identity matrix of the same size
+    I = np.eye(len(C_union))
+
+    # Compute the inverse (I - z * P_C_union)
+    M_inv = np.linalg.inv(I - z * P_C_union)
+
+    # Indicator vector for Ca (1 for indices in Ca, 0 otherwise)
+    ones_Ca = np.array([1 if i in Ca else 0 for i in C_union]).reshape(-1, 1)
+
+    # Compute the incremental path integral
+    S = (1 / (len(Ca) ** 2)) * ones_Ca.T @ M_inv @ ones_Ca
+
+    return float(S)  # Convert to scalar

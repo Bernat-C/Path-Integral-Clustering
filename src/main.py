@@ -2,12 +2,14 @@ import numpy as np
 import heapq
 import tqdm
 from scipy.spatial import KDTree
-from path_integral import compute_incremental_path_integral, compute_path_integral
+from scipy.optimize import linear_sum_assignment
+from scipy.spatial.distance import cdist
 from sklearn.metrics import normalized_mutual_info_score
+from sklearn.metrics import confusion_matrix
+
+from path_integral import compute_incremental_path_integral, compute_path_integral, compute_incremental_path_integral_inefficient
 from visualize import visualize_clusters
 from data import generate_synthetic, load_usps
-from scipy.optimize import linear_sum_assignment
-from sklearn.metrics import confusion_matrix
 from nearest_neighbour_init import cluster_init
 
 # Euclidean distance (for now)
@@ -17,14 +19,15 @@ def dist(xi, xj):
 def k_nearest_neighbors(data, k): # Do it once and return 3 and k
     tree = KDTree(data)  # Build KDTree
     distances, indices = tree.query(data, k=k+1)  # Query k+1 (includes self)
+
     return indices[:, 1:], distances[:, 1:]  # Remove self (0th neighbor)
 
 
-def sigma_squared(data, knn3_dis, a): # a to be set
+def sigma_squared(data, knn3_dis, a):
     n = data.shape[0]
     
-    squared_dists = np.sum(knn3_dis ** 2)  
-    den = -3*n*np.log(a)
+    squared_dists = np.sum(np.square(knn3_dis))
+    den = 3*n*(-np.log(a))
         
     return squared_dists / den
 
@@ -33,9 +36,9 @@ def pairwise_similarity_matrix(data, knn, sigma2):
     n = len(data)
     W = np.zeros((n, n))  # Initialize the similarity matrix
 
-    for i in range(n):
+    for i in tqdm.tqdm(range(n),desc="Computing matrix W"):
         for j in knn[i]:  # Only compute for k-nearest neighbors
-            W[i, j] = np.exp(-dist(data[i], data[j]) ** 2 / sigma2)
+            W[i, j] = np.exp(-(dist(data[i], data[j]) ** 2 / sigma2))
 
     return W
     
@@ -61,6 +64,7 @@ def compute_P(W):
     return P
 
 def create_digraph(X, k, a):
+    print(f"Creating Digraph")
     X = np.asarray(X)
     n = X.shape[0]
     # Compute parameters
@@ -68,13 +72,13 @@ def create_digraph(X, k, a):
     knn3_ind, knn3_dis = k_nearest_neighbors(X,3)
     sigma2 = sigma_squared(X,knn3_dis,a)
         
-    #a = np.prod(W, axis=1) ** (1/3)
-
     # Weighted adjacency matrix
-    #W = np.fromfunction(np.vectorize(lambda i, j: pairwise_similarity(X,i,j,knn_ind,sigma2)), (n, n), dtype=int)
     W = pairwise_similarity_matrix(X, knn_ind, sigma2)
 
     return W
+
+def compute_affinity_single_link(D,Ca,Cb):
+    return -np.min([D[i, j] for i in Ca for j in Cb])
 
 def compute_affinity(P, Ca, Cb, z): # Equation 3
     """ Affinity
@@ -85,22 +89,21 @@ def compute_affinity(P, Ca, Cb, z): # Equation 3
 
     Returns:
         float: affinity
-    """    
+    """
     Pa = P[np.ix_(Ca,Ca)]
     Pb = P[np.ix_(Cb,Cb)]
-    selected_indices = np.append(Ca,Cb)
-    Pab = P[np.ix_(selected_indices, selected_indices)]
 
     S_Ca = compute_path_integral(Pa,z)
     #print(f"S_Ca: {S_Ca}")
     S_Cb = compute_path_integral(Pb,z)
     #print(f"S_Cb: {S_Cb}")
-    S_Ca_given_CaUCb = compute_incremental_path_integral(Ca,Cb,Pab,z)
+    S_Ca_given_CaUCb = compute_incremental_path_integral(Ca,Cb,P,z)
     #print(f"SCa given CaUb: {S_Ca_given_CaUCb}")
-    S_Cb_given_CaUCb = compute_incremental_path_integral(Cb,Ca,Pab,z)
+    S_Cb_given_CaUCb = compute_incremental_path_integral(Cb,Ca,P,z)
     #print(f"SCb given CaUb: {S_Cb_given_CaUCb}")
 
-    return (S_Ca_given_CaUCb - S_Ca) + (S_Cb_given_CaUCb - S_Cb)
+    result = (S_Ca_given_CaUCb - S_Ca) + (S_Cb_given_CaUCb - S_Cb)
+    return result
 
 def transform_to_assignments(clusters):
     # Create an empty list to hold the cluster assignments
@@ -152,36 +155,39 @@ def run(X, C, nt, z=0.01, a=0.95, K=20):
         C (np.array): cluster initializations
         nt (int): target number of clusters
     """
-    assert(K<=len(X))
+    assert(K<len(X))
     
     W = create_digraph(X,k=K,a=a) # a can't be 0 nor 1 (inf)
     P = compute_P(W)
+
+    #D = cdist(X, X, metric="euclidean") # Used for trials using single-link instead of path integral
     
     nc = len(C)
     if nc < 2:
         return C # Nothing to merge
     
     max_heap = []
-    # affinity_dict = {}
     for i in tqdm.tqdm(range(nc),desc="Computing initial cluster's affinities."):
         for j in range(i + 1, nc):
-            affinity = compute_affinity(P, C[i], C[j], z)
+            affinity = compute_affinity(P, C[i], C[j], z)#compute_affinity_single_link(D,C[i],C[j])
             heapq.heappush(max_heap, (-affinity, i, j))  # Store negative affinity for max heap
-            # affinity_dict[(i, j)] = affinity
-    
-    # print(np.array(af))
+            
     active_clusters = set(range(nc))
     
     print("The clustering process has begun")
-    while len(active_clusters) > nt:
+    for i in tqdm.tqdm(range(len(active_clusters), nt, -1), desc="Clustering..."):
+        
         # Get the most similar pair
         while max_heap:
             _, i, j = heapq.heappop(max_heap)
+            #print(f"{i} - {j} is a candidate.")
             if i in active_clusters and j in active_clusters:
+                print(f"Cluster {i} {j} are the most affine.")
                 break  # Found valid cluster pair
         else:
             break
         
+        #visualize_clusters(X,C,active_clusters)
         # Merge the two elements
         merged = np.append(C[i], C[j])
 
@@ -196,7 +202,7 @@ def run(X, C, nt, z=0.01, a=0.95, K=20):
 
         # Update affinities with the new element
         for k in active_clusters - {new_idx}:  # Compute affinity with all previous elements excluding itself
-            affinity = compute_affinity(P, C[k], merged, z)
+            affinity =  compute_affinity(P, C[k], merged, z)#compute_affinity_single_link(D,C[k],merged)
             heapq.heappush(max_heap, (-affinity, k, new_idx))  # Push new affinities to the heap
             # affinity_dict[(k, new_idx)] = affinity
     
@@ -206,18 +212,18 @@ def run(X, C, nt, z=0.01, a=0.95, K=20):
 def test_synthetic():
     n_samples = 200
     n_features = 2
-    nt = 5
+    nt = 4
     
     print("Generating data")
     data, y_true = generate_synthetic(n_samples=n_samples, n_features=n_features, centers=nt)
 
     print("Initializing clusters")
     C = cluster_init(data)
-    #visualize_clusters(data, C, title="Clustering initialization")
+    #visualize_clusters(data, C, range(len(C)), title="Clustering initialization")
     
-    C = run(data,C,nt,z=0.01,a=0.95,K=20)
+    C = run(data,C,nt,z=0.01,a=0.95,K=10)
 
-    visualize_clusters(data, C, title="Definitive clusters")
+    visualize_clusters(data, C, range(len(C)), title="Definitive clusters")
 
     y_pred = transform_to_assignments(C)
     nmis = normalized_mutual_info_score(y_true,y_pred)
@@ -233,11 +239,11 @@ def test_usps():
 
     print("Initializing clusters")
     C = cluster_init(data)
-    #visualize_clusters(data, C, title="Clustering initialization")
+    #visualize_clusters(data, C, range(len(C)), title="Clustering initialization")
     
     C = run(data,C,nt,z=0.01,a=0.95,K=20)
 
-    visualize_clusters(data, C, title="Definitive clusters")
+    visualize_clusters(data, C, range(len(C)), title="Definitive clusters")
 
     y_pred = transform_to_assignments(C)
     nmis = normalized_mutual_info_score(y_true,y_pred)
@@ -246,4 +252,4 @@ def test_usps():
     print(f"Clustering error {ce}")
     
 if __name__ == "__main__":
-    test_usps()
+    test_synthetic()
