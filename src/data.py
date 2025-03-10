@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torchvision.datasets import USPS
 from sklearn.datasets import make_blobs
+from sklearn.datasets import load_breast_cancer
 
 def generate_synthetic(n_samples, n_features, centers):
     """Generate a simple 2D clustering dataset using make_blobs."""
@@ -26,7 +27,6 @@ def load_usps():
     labels = np.array([img[1] for img in usps_dataset] + [img[1] for img in usps_dataset_test])
     
     print(len(images))
-    print(collections.Counter(labels).items())
     print(len(set(labels)))
     
     images = images.reshape(-1,16*16)
@@ -55,6 +55,11 @@ def load_mnist():
     assert(len(set(labels)) == 5)
     
     return images, labels
+
+def load_bc_wisconsin():
+    data = load_breast_cancer()
+    
+    return data.data, data.target
 
 if __name__ == "__main__":
     images_x, image_y = load_mnist()
