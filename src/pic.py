@@ -1,7 +1,6 @@
 import numpy as np
 import heapq
 import tqdm
-from sklearn.preprocessing import StandardScaler
 
 from nearest_neighbour_init import cluster_init
 from utils import k_nearest_neighbors, dist
@@ -81,7 +80,8 @@ class PathIntegralClustering:
         Returns:
             W (np.array): transition probability matrix
         """
-        print(f"Creating Digraph")
+        if self.verbose:
+            print(f"Creating Digraph")
         X = np.asarray(X)
         
         knn_ind, knn_dis = k_nearest_neighbors(X,self.K)
@@ -130,6 +130,26 @@ class PathIntegralClustering:
 
         result = (S_Ca_given_CaUCb - S_Ca) + (S_Cb_given_CaUCb - S_Cb)
         return result
+    
+    def _get_instance_assignments(self,clusters):
+        """ Transforms the cluster list, containing sets of instances belonging to each cluster to an array containing the assigned cluster index for each element in a sorted way.
+
+        Args:
+            clusters (List): array of arrays of cluster indices
+
+        Returns:
+            Cluster assignments
+        """
+        assignments = []
+        
+        for cluster_id, cluster in enumerate(clusters):
+            for index in cluster:
+                assignments.append((index, cluster_id))
+        
+        assignments.sort(key=lambda x: x[0])
+        result = [cluster_id for index, cluster_id in assignments]
+        
+        return result
 
     def run(self,X, C):
         """ Runs Agglomerative clustering via maximum incremental path integral.
@@ -157,7 +177,8 @@ class PathIntegralClustering:
                 
         active_clusters = set(range(nc))
         
-        print("The clustering process has begun")
+        if self.verbose:
+            print("The clustering process has begun")
         for i in tqdm.tqdm(range(len(active_clusters), self.target_clusters, -1), desc="Clustering..."):
             
             # Get the most similar pair
@@ -170,7 +191,6 @@ class PathIntegralClustering:
             else:
                 break
             
-            #visualize_clusters(X,C,active_clusters)
             merged = np.append(C[i], C[j])
 
             # Remove old elements and add merged element
@@ -190,14 +210,11 @@ class PathIntegralClustering:
         #print(f"Ended run with |C|:{len(C)} |AC|:{len(active_clusters)} with target clusters:{target_clusters}")
         return [C[i] for i in active_clusters]
 
-    def fit(self,X):
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-
-        C = cluster_init(X_scaled)
-        #visualize_clusters(X_scaled, C, range(len(C)), title="Clustering initialization")
+    def fit_predict(self,X):
+        C = cluster_init(X)
+        #visualize_clusters(X, C, title="Clustering initialization")
         
-        return self.run(X_scaled,C)
+        C = self.run(X,C)
+        y = self._get_instance_assignments(C)
         
-    def predict():
-        pass
+        return y

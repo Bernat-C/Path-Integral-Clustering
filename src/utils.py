@@ -15,6 +15,16 @@ def dist(xi, xj):
     return np.linalg.norm(xi - xj)
 
 def k_nearest_neighbors(data, k): # Do it once and return 3 and k
+    """Computes k nearest neighbours
+
+    Args:
+        data (np.array)
+        k (int):
+
+    Returns:
+        indices: indices of the k neighbours of each element
+        distances: distances to the k neighbours of each element
+    """
     tree = KDTree(data)  # Build KDTree
     distances, indices = tree.query(data, k=k+1)  # Query k+1 (includes self)
 

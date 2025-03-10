@@ -2,25 +2,45 @@ import tqdm
 import numpy as np
 from scipy.spatial.distance import cdist
 
-# Function to find nearest neighbors using Euclidean distance
-def find_nearest_neighbors(samples):
-    # Compute pairwise distances between all samples
-    distances = cdist(samples, samples)
+def find_nearest_neighbors(X):
+    """ find nearest neighbours using euclidean distance
+
+    Args:
+        X (np.array)
+
+    Returns:
+        _type_: _description_
+    """
+    distances = cdist(X, X)
     np.fill_diagonal(distances, np.inf)  # Ignore self-distances
     nearest_indices = np.argmin(distances, axis=1)  # Get nearest neighbors' indices
     return nearest_indices
 
-# Function to initialize clusters
-def initialize_clusters(samples):
-    nearest_indices = find_nearest_neighbors(samples)
-    n_samples = len(samples)
+def initialize_clusters(X):
+    """Initializes the clusters using nearest neighbour initialization
+
+    Args:
+        X (_type_)
+
+    Returns:
+        C
+    """
+    nearest_indices = find_nearest_neighbors(X)
+    n_samples = len(X)
     
     # Initialize clusters as a numpy array of shape (n_samples, 2)
     clusters = np.array([[i, nearest_indices[i]] for i in range(n_samples)])
     return clusters
 
-# Function to merge clusters
-def merge_clusters(samples, clusters):
+def merge_clusters(clusters):
+    """ Runs nearest neighbour initialization
+
+    Args:
+        clusters (np.array)
+
+    Returns:
+        final clusters
+    """
     merged = True
     while merged:
         merged = False
@@ -73,6 +93,6 @@ def cluster_init(X):
     clusters = initialize_clusters(X)
     
     # Step 2: Merge clusters until no more merges can be done
-    final_clusters = merge_clusters(X, clusters)
+    final_clusters = merge_clusters(clusters)
     
     return final_clusters

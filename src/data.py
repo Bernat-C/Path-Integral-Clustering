@@ -7,9 +7,9 @@ from torchvision.datasets import USPS
 from sklearn.datasets import make_blobs
 from sklearn.datasets import load_breast_cancer
 
-def generate_synthetic(n_samples, n_features, centers):
+def generate_synthetic(n_samples, n_features, centers,random_state):
     """Generate a simple 2D clustering dataset using make_blobs."""
-    X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers, random_state=42)
+    X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers, random_state=random_state)
     return X, y
 
 def download_mnist():
@@ -53,6 +53,8 @@ def load_mnist():
     
     assert(len(images == 5139))
     assert(len(set(labels)) == 5)
+    
+    images = images.reshape(-1,28*28)
     
     return images, labels
 
