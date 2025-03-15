@@ -7,7 +7,7 @@ from torchvision.datasets import USPS
 from sklearn.datasets import make_blobs
 from sklearn.datasets import load_breast_cancer
 
-def generate_synthetic(n_samples, n_features, centers,random_state):
+def generate_synthetic(n_samples, n_features, centers,random_state=None):
     """Generate a simple 2D clustering dataset using make_blobs."""
     X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers, random_state=random_state)
     return X, y
