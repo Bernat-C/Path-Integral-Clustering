@@ -12,6 +12,21 @@ def generate_synthetic(n_samples, n_features, centers,random_state):
     X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers, random_state=random_state)
     return X, y
 
+def add_gaussian_noise(X, noise_level=0.1):
+    # Generate Gaussian noise with mean 0 noise_level standard deviation
+    noise = np.random.normal(loc=0.0, scale=noise_level, size=X.shape)
+    return X + noise
+
+def add_structural_noise(X, y_true, noise_level=0.1):
+    num_points_to_remove = int(len(X) * noise_level)
+    
+    # Randomly select indices of points to remove
+    indices_to_remove = np.random.choice(X.shape[0], num_points_to_remove, replace=False)
+    X_noisy = np.delete(X, indices_to_remove, axis=0)
+    y_noisy = np.delete(y_true, indices_to_remove, axis=0)
+    
+    return X_noisy, y_noisy
+
 def download_mnist():
     """
     Download the MNIST dataset using kagglehub.
