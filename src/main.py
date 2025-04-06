@@ -10,7 +10,7 @@ from metrics import clustering_error
 from visualize import visualize_clusters
 
 def test():
-    n_samples = 500
+    n_samples = 800
     n_features = 10
     target_clusters = 10
     gaussian_noise_level = 1.8
