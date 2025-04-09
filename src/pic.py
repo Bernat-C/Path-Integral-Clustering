@@ -46,7 +46,7 @@ class PathIntegralClustering:
         n = len(X)
         W = np.zeros((n, n))  # Initialize the similarity matrix
 
-        for i in tqdm.tqdm(range(n),desc="Computing matrix W"):
+        for i in tqdm.tqdm(range(n),desc="Computing matrix W", disable=not self.verbose):
             for j in knn[i]:  # Only compute for k-nearest neighbors
                 W[i, j] = np.exp(-(dist(X[i], X[j]) ** 2 / sigma2))
 
@@ -170,7 +170,7 @@ class PathIntegralClustering:
             return C # Nothing to merge
         
         max_heap = []
-        for i in tqdm.tqdm(range(nc),desc="Computing initial cluster's affinities."):
+        for i in tqdm.tqdm(range(nc),desc="Computing initial cluster's affinities.", disable=not self.verbose):
             for j in range(i + 1, nc):
                 affinity = self._compute_affinity(P, C[i], C[j])#compute_affinity_single_link(D,C[i],C[j])
                 heapq.heappush(max_heap, (-affinity, i, j))  # Store negative affinity for max heap
@@ -179,7 +179,7 @@ class PathIntegralClustering:
         
         if self.verbose:
             print("The clustering process has begun")
-        for i in tqdm.tqdm(range(len(active_clusters), self.target_clusters, -1), desc="Clustering..."):
+        for i in tqdm.tqdm(range(len(active_clusters), self.target_clusters, -1), desc="Clustering...", disable=not self.verbose):
             
             # Get the most similar pair
             while max_heap:

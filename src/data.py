@@ -24,7 +24,7 @@ def add_structural_noise(X, y_true, noise_level=0.1):
     indices_to_remove = np.random.choice(X.shape[0], num_points_to_remove, replace=False)
     X_noisy = np.delete(X, indices_to_remove, axis=0)
     y_noisy = np.delete(y_true, indices_to_remove, axis=0)
-    
+        
     return X_noisy, y_noisy
 
 def download_mnist():
