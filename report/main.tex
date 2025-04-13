@@ -183,16 +183,42 @@ The iterative part consists of merging the two most affine clusters we have unti
 
 In this section we are going to describe the particularities of the implementation of the Path Integral Clustering Algorithm. The first section goes over the implementation techniques recommended by the paper, and the second one contains the extra decisions made during the implementation. 
 
-During the implementation, efficiency was our priority. The full implementation of the algorithm is contained in the files \textit{pic.py}, \textit{nearest\_neighbour\_init.py} and \textit{path\_integral.py}. The rest of files are helpers that have contributed to the results obtained but are not part of the implementation itself.
+During the implementation, efficiency was our priority. The full implementation of the algorithm is contained in the files \textit{"pic.py"}, \textit{"nearest\_neighbour\_init.py"} and \textit{"path\_integral.py"}. The rest of files are helpers that have contributed to the results obtained but are not part of the implementation itself.
 
 \subsection{Efficient computation of the path integral}
 
-The main ideas laid out by the paper about the implementation are on the computation of the path integral between two clusters. They use Theorem \ref{th1} to avoid computing a matrix inverse but instead solve a linear system.
+The main ideas laid out by the paper about the implementation are on the computation of the path integral between two clusters. They use Theorem 1 to avoid computing a matrix inverse but instead solve a linear system. 
+
+\textbf{Theorem 1}. $s_{ij}$ always converges, and $s_{ij}= \left[(I - zP_{\mathcal{C}})^{-1}\right]_{ij}$, i.e., the $(i,j)$-element of $(I-zP_{\mathcal{C}})^{-1}$, where $P_{\mathcal{C}}$ is the submatrix of $P$ by selecting the samples in $\mathcal{C}$. If we define $S_{\mathcal{C}} = [s_{ij}]_{i,j \in \mathcal{C}}$, we have $S_{\mathcal{C}} = (I - zP_{\mathcal{C}})^{-1}$. Then, we can compute the path integral as the structural descriptor of cluster $\mathcal{C}$ as follows:
 
 \begin{equation}
-    \label{th1}
+    S_{\mathcal{C}} = \frac{1}{|\mathcal{C}|^2} \mathbf{1}^{T} S_{\mathcal{C}} \mathbf{1}
+    = \frac{1}{|\mathcal{C}|^2} \mathbf{1}^{T} (I - zP_{\mathcal{C}})^{-1} \mathbf{1}
+    \label{eq8}
 \end{equation}
 
+where $\mathbf{1}$ is all-one column vector.
+
+\textbf{Proposition 1} $(I - zP_{\mathcal{C}})$ is a strictly diagonally dominant matrix with the $\infty$-norm condition number no more than $(1+z)/(1-z)$.
+
+Both Theorem 1 and Proposition 1 are proven in the original paper \cite{citation1}, so we will not go into more detail here. Taking them into account, we see that the computation of $S_{\mathcal{C}}$ only involves solving a linear system
+
+\begin{equation}
+    \begin{split}
+    (I - zP_{\mathcal{C}}) \mathbf{y} = \mathbf{1},
+    \label{eq7}
+    \\
+    S_{\mathcal{C}} = \frac{1}{|\mathcal{C}|^2} \mathbf{1}^{T} \mathbf{y}.
+    \end{split}
+\end{equation}
+
+For a large cluster, $(I - zP_{\mathcal{C}})$ is sparse, which means it follows Proposition 1 and can be solved using iterative methods. This will help us compute both the incremental path integral and the path integral descriptor.
+
+\begin{equation}
+    S_{c_a|c_a \cup c_b} = \frac{1}{|c_a|^2} \mathbf{1}_{c_a}^{T} (I - zP_{c_a \cup c_b})^{-1} \mathbf{1}_{c_a}
+\end{equation}
+
+To compute the path integral descriptor as shown in Equation \ref{eq8}, we first compute \((I - zP_{c_a \cup c_b})\), which is straightforward. Then, following equation \ref{eq7}, we solve the linear system (we can use spsolve). Finally, multiplying by the transposed matrix of 1s is the same as summing all the elements in the matrix resulting from the linear equation's solving, and finally we can compute the multiplication with the fraction. Computing the incremental path descriptor takes advantage of the same trick. 
 
 \subsection{Implementation decisions}
 
@@ -202,19 +228,18 @@ In addition to this, we are using a heap to store all the cluster pairs and thei
 
 Due to the nature of our algorithm, we only implement the fit-predict method. This is because the algorithm does not learn from data but instead applies the same process to the samples to cluster them independently from the data it has seen.
 
+All the operations that involve the clustering algorithm use numpy, using matrices as numpy arrays, and taking advantage of the different tools we have to work with sparse matrices. Because of the way the similarities are computed, being set to zero if they are not in the K nearest neighbors of every sample, and because of their enormous sizes, we use different tools from scipy.sparse, including spsolve to solve the linear systems that compute the Path Integral (see previous section), converting matrices to csc form and making computations between matrices using the sparse tools.
+
 \section {Experiments}
 
-In this project, we will conduct experiments comparing different clustering algorithms on several datasets. The algorithms under evaluation include Affinity Propagation, Complete Link, Average Link, Simple Link, Zell, and of course, our implementation of PIC. Each algorithm will be tested on four datasets: MNIST, USPS, Breast Cancer (Wisconsin), and a synthetic random dataset with 1000 samples and 50 features. The goal is to analyze the performance and effectiveness of these algorithms in terms of clustering quality and efficiency across different types of data.
+In this section we will conduct experiments comparing different clustering algorithms on several datasets. The algorithms under evaluation include Affinity Propagation, Complete Link, Average Link, Simple Link, Zeta clustering (Zell), Difussion clustering, and of course, our implementation of PIC. Each algorithm will be tested on four datasets: MNIST, USPS, Breast Cancer (Wisconsin), and a synthetic random dataset with 1000 samples and 50 features. We are going to divide the experiments section into two subsections. In the first subsection, we are going to analyse how does the introduction of gaussian noise and structural noise affect the performance of the different algorithms, similar to what is done in the original paper. In the second one, we are going to run the algorithms on the complete datasets to observe what are the differences in their performances, using a diverse set of metrics.
 
-The reason of selecting these algorithms to be compared is because we have only found implementations for the Affinity Propagation, Complete, Average and Simple Links, and to be able to compare it to some of the algorithms that get the most similar results in the paper we have manually implemented the diffusion Kernel (D-kernel) and Zeta function clustering (Zell), that get some of the best results in the paper after the PIC.
+The choice of the algorithms we are using is due to the fact that we only have found implementations for the Affinity Propagation, Complete, Average and Simple Links. Although in the project we only had to implement PIC, we decided to also implement some of the algorithms that get the most similar results in the paper, and the selected algorithms to implement are the diffusion Kernel (D-kernel) and Zeta function clustering (Zell), because they are shown to be better than PIC in some domains in the original paper.
 
-The metrics we will be using to compare the methods are the ones that are used in the paper: Normalized Mutual Information score and Clustering error, and as both of these are external metrics we have extended it with some internal ones, by the addition of Silhouette, Davies-Bouldin and Calinski-Harabasz. We have selected these three internal metrics because they are the ones recommended as internal criteria for a wide range of situations by the "Clustering evaluation and validation" chapter of the material of the Unsupervised Learning course \cite{citation2}. 
+The datasets chosen are also extracted from the paper: MNIST and USPS. We opted not to use the FRGC ver2.0, PubFig, and Caltech datasets for this study due to their large size, which would require significant computational resources and time for processing, apart from the approach the paper takes on loading them, which uses spatial pyramid features. Instead, we have decided to incorporate the Breast-cancer wisconsin dataset because it is a well-known benchmark in the medical domain, containing a high-dimensional, real-world classification and being widely used. In addition, being a binary classification dataset, it stands out from the rest and means that the algorithms will have to iterate until only two clusters are remaining, apart from being something not tested in the original paper.
 
-The datasets chosen are some of the ones that are used in the paper: MNIST and USPS. We opted not to use the FRGC ver2.0, PubFig, and Caltech datasets for this study due to their large size, which would require significant computational resources and time for processing. Instead, we have decided to incorporate the Breast-cancer wisconsin dataset because it is a well-known benchmark in the medical domain, containing a high-dimensional, real-world classification and being widely used. We don't have access to the synthetic datasets that are used in the paper, and for this reason we have implemented our own. With our dataset, we will also study how does structural and gaussian noise affect our implementation of the clustering algorithm. Our synthetic dataset has 1000 samples, 10 features and 10 target clusters. We are going to do the same study as they did by introducing gaussian noise and structural noise.
+We don't have access to the synthetic datasets that are used in the paper, and for this reason we have decided to create our. It will be using the synthetic dataset that we will study how does structural and gaussian noise affect our implementation of the clustering algorithm. Our synthetic dataset has 1000 samples, 10 features and 10 target clusters.
 
-- TODO: Table containing dataset size and information
-- BC Wisconsin: Biclass, as many merges as possible
-- Synthetic: All param combinations are repeated 20 times
 \begin{table}[h]
 \centering
 \caption{Statistics of used datasets.}
@@ -232,7 +257,71 @@ Dimensionality     & 256    & 784   & 30   & 10 \\
 \end{tabular}
 \end{table}
 
+\subsection{Metrics to be used}
+
+The metrics we will be using to compare the methods are the same ones that are used in the paper: Normalized Mutual Information score and Clustering error, and as both of these are external metrics we decided to incorporate some internal ones: Silhouette score, Davies-Bouldin score, and Calinski-Harabasz Index. We have selected these three internal metrics because they are the ones recommended as internal criteria for a wide range of situations by the "Clustering evaluation and validation" chapter of the material of the Unsupervised Learning course \cite{citation2}. Their implementations can be seen in Equations \ref{eq9}, \ref{eq10}, \ref{eq11}, \ref{eq12}, and \ref{eq13}.
+
+\begin{equation}
+    \text{NMI}(U, V) = \frac{2 \times I(U; V)}{H(U) + H(V)}
+    \label{eq9}
+\end{equation}
+where:
+\begin{itemize}
+    \item $I(U; V)$ is the mutual information between cluster assignment $U$ and ground truth labels $V$.
+    \item $H(U)$ and $H(V)$ are the entropies of $U$ and $V$.
+\end{itemize}
+
+\begin{equation}
+    \text{CE} = 1 - \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}\{ \hat{y}_i = y_i \}
+    \label{eq10}
+\end{equation}
+where:
+\begin{itemize}
+    \item $N$ is the total number of samples.
+    \item $\hat{y}_i$ is the predicted cluster label after optimal matching.
+    \item $y_i$ is the ground truth label.
+    \item $\mathbb{1}\{\cdot\}$ is the indicator function (1 if true, 0 otherwise).
+\end{itemize}
+
+\begin{equation}
+    s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}}
+    \label{eq11}
+\end{equation}
+where:
+\begin{itemize}
+    \item $a(i)$ is the average distance from point $i$ to all other points in the same cluster.
+    \item $b(i)$ is the minimum average distance from point $i$ to points in a different cluster.
+\end{itemize}
+The overall Silhouette Score is the mean of $s(i)$ over all points.
+
+\begin{equation}
+    \text{DB} = \frac{1}{k} \sum_{i=1}^{k} \max_{j \neq i} \left( \frac{S_i + S_j}{M_{ij}} \right)
+    \label{eq12}
+\end{equation}
+where:
+\begin{itemize}
+    \item $k$ is the number of clusters.
+    \item $S_i$ is the average distance between each point in cluster $i$ and its centroid.
+    \item $M_{ij}$ is the distance between the centroids of clusters $i$ and $j$.
+\end{itemize}
+
+\begin{equation}
+    \text{CH} = \frac{\text{Tr}(B_k)}{\text{Tr}(W_k)} \times \frac{N - k}{k-1}
+    \label{eq13}
+\end{equation}
+where:
+\begin{itemize}
+    \item $N$ is the total number of points.
+    \item $k$ is the number of clusters.
+    \item $\text{Tr}(B_k)$ is the trace of the between-cluster dispersion matrix.
+    \item $\text{Tr}(W_k)$ is the trace of the within-cluster dispersion matrix.
+\end{itemize}
+
 \subsection{Noise analysis}
+
+In this section we will run experiments using the previously described synthetic dataset incorporating different levels of gaussian noise and structural noise to see how do the different methods behave. Because the addition of gaussian and structural noise is done randomly, we have followed the same practices from the original paper and repeated all the experiments 20 times, showing the mean and the standard deviation at each noise level.
+
+
 
 \subsection{Algorithm comparison}
 

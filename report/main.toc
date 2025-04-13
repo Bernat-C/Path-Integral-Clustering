@@ -6,10 +6,11 @@
 \contentsline {subsection}{\numberline {1.4}Agglomerative algorithm}{5}{subsection.1.4}%
 \contentsline {section}{\numberline {2}Description of the implementation}{5}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Efficient computation of the path integral}{6}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Implementation decisions}{6}{subsection.2.2}%
-\contentsline {section}{\numberline {3}Experiments}{6}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Noise analysis}{7}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Algorithm comparison}{7}{subsection.3.2}%
-\contentsline {section}{\numberline {4}Conclusions}{7}{section.4}%
-\contentsline {section}{\numberline {5}Bibliography}{8}{section.5}%
+\contentsline {subsection}{\numberline {2.2}Implementation decisions}{7}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Experiments}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Metrics to be used}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Noise analysis}{9}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Algorithm comparison}{9}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Conclusions}{9}{section.4}%
+\contentsline {section}{\numberline {5}Bibliography}{10}{section.5}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

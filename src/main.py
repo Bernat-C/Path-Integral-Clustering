@@ -15,7 +15,7 @@ from data import generate_synthetic, load_bc_wisconsin, load_mnist, load_usps, a
 from algorithms import run_ap, runAC, zeta_function_clustering, diffusion_kernel_clustering
 from pic import PathIntegralClustering
 from metrics import clustering_error
-from visualize import visualize_clusters
+from visualize import visualize_clusters, plot_noise_results
 
 DATA_DIR =  Path(__file__).parent / '..' / 'data'
 PLOTS_DIR = DATA_DIR / 'plots'
@@ -126,34 +126,6 @@ def evaluate_clustering(X, y_true, noise_level, n_clusters, noise_type="gaussian
         
     return dist_nmi_scores
 
-def plot_results(results: dict, x_indices):
-    methods = list(results[0].keys())
-
-    plt.figure(figsize=(12, 6))
-
-    for method in methods:
-        means = [d[method][0] for d in results]
-        stds = [d[method][1] for d in results]
-        
-        plt.errorbar(
-            x_indices,
-            means,
-            yerr=stds,
-            label=method,
-            capsize=4,
-            marker='o',
-            linestyle='-'
-        )
-
-    # Customize
-    plt.xlabel('Gaussian Noise Level')
-    plt.ylabel('Score')
-    plt.title('Performance vs. Gaussian Noise Level')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show(block=False)
-
 def run_noise_experiment(config: Config):
     print("Getting data")
     n_centers = config.target_clusters
@@ -162,13 +134,9 @@ def run_noise_experiment(config: Config):
     gaussian_noise_levels = [1,1.2,1.4,1.6,1.8]
     structural_noise_levels = [0,0.05,0.1,0.15,0.2,0.25]
     
-    fig, axes = plt.subplots(1, 2, figsize=(15, 10))
-    fig.suptitle('NMI Scores with Gaussian and Structural Noise', fontsize=16)
-    
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
-    ax = axes[0]
     results_gaussian = []
     file_gaussian = os.path.join(DATA_DIR,'gaussian_noise_comparison.pkl')
     if os.path.exists(file_gaussian):
@@ -184,7 +152,7 @@ def run_noise_experiment(config: Config):
     file_structural = os.path.join(DATA_DIR,'structural_noise_comparison.pkl')
     if os.path.exists(file_structural):
         with open(file_structural, 'rb') as f:
-            results_gaussian = pkl.load(f)
+            results_structural = pkl.load(f)
     else:
         for noise_level in tqdm.tqdm(structural_noise_levels, desc=f"Running structural noise experiment"):
             results_structural.append(evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "structural"))
@@ -192,20 +160,20 @@ def run_noise_experiment(config: Config):
         with open(os.path.join(DATA_DIR,'structural_noise_comparison.pkl'), 'wb') as f:
             pkl.dump(results_structural, f)
         
-    plot_results(results_gaussian, gaussian_noise_levels)
-    plot_results(results_structural, structural_noise_levels)
+    plot_noise_results(results_gaussian, gaussian_noise_levels, noise_type="Gaussian", save_path=PLOTS_DIR / f"results_gaussian_noise.png")
+    plot_noise_results(results_structural, structural_noise_levels, noise_type="Structural", save_path=PLOTS_DIR / f"results_structural_noise.png")
 
 if __name__ == "__main__":
     # Synthetic dataset noise experiment
-    # config = Config(
-    #     name="synthetic_noise",
-    #     dataset_name="synthetic",
-    #     n_samples=1000,
-    #     n_features=10,
-    #     target_clusters=10
-    # )
-    # run_noise_experiment(config)
+    config = Config(
+        name="synthetic_noise",
+        dataset_name="synthetic",
+        n_samples=1000,
+        n_features=10,
+        target_clusters=10
+    )
+    run_noise_experiment(config)
     
-    configs = load_configs()
-    for config in configs:
-        test(config)
+    # configs = load_configs()
+    # for config in configs:
+    #     test(config)
