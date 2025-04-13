@@ -1,35 +1,36 @@
 import os
-from matplotlib import pyplot as plt
-import numpy as np
-from sklearn.discriminant_analysis import StandardScaler
 import tqdm
-from config import Config
-from data import generate_synthetic, load_bc_wisconsin, load_mnist, load_usps, add_gaussian_noise, add_structural_noise
-from algorithms import run_ap, runAC, zeta_function_clustering, diffusion_kernel_clustering
+import numpy as np
+import pandas as pd
+import pickle as pkl
+from pathlib import Path
+from matplotlib import pyplot as plt
+
+from sklearn.discriminant_analysis import StandardScaler
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from sklearn.metrics import normalized_mutual_info_score
+
+from config import Config, load_configs
+from data import generate_synthetic, load_bc_wisconsin, load_mnist, load_usps, add_gaussian_noise, add_structural_noise
+from algorithms import run_ap, runAC, zeta_function_clustering, diffusion_kernel_clustering
 from pic import PathIntegralClustering
 from metrics import clustering_error
 from visualize import visualize_clusters
-import pickle as pkl
-from pathlib import Path
 
 DATA_DIR =  Path(__file__).parent / '..' / 'data'
+PLOTS_DIR = DATA_DIR / 'plots'
 
-def get_dataset(dataset_name, params=None):
-    if dataset_name == "usps":
+def get_dataset(config: Config):
+    if config.dataset_name == "usps":
         return load_usps()
-    elif dataset_name == "mnist":
+    elif config.dataset_name == "mnist":
         return load_mnist()
-    elif dataset_name == "bc_wisconsin":
+    elif config.dataset_name == "bc_wisconsin":
         return load_bc_wisconsin()
-    elif dataset_name == "synthetic":
-        generate_synthetic(n_samples=params['n_samples'], n_features=params['n_features'], centers=params['target_clusters'] ,random_state=42)
-        X = add_gaussian_noise(X, params['gaussian_noise_level'])
-        X, y_true = add_structural_noise(X, y_true, params['structural_noise_level'])
-        return X, y_true
+    elif config.dataset_name == "synthetic":
+        return generate_synthetic(n_samples=config.n_samples, n_features=config.n_features, centers=config.target_clusters)
     else:
-        raise ValueError(f"Unknown dataset: {dataset_name}")
+        raise ValueError(f"Unknown dataset: {config.dataset_name}")
 
 def test(config: Config=None):
     print("Getting data")
@@ -41,37 +42,44 @@ def test(config: Config=None):
     print("Initializing clusters")
     y_pred = {}
     
+    y_pred["A-Link"] = runAC(X_scaled, config.target_clusters, method='average')
     pic = PathIntegralClustering(config.target_clusters, z=0.01, a=0.95, K=20)
     y_pred["AP"] = run_ap(X_scaled)
-    y_pred["A-Link"] = runAC(X_scaled, config.target_clusters, method='average')
     y_pred["S-link"] = runAC(X_scaled, config.target_clusters, method='single')
     y_pred["C-link"] = runAC(X_scaled, config.target_clusters, method='complete')
     y_pred["Zell"] = zeta_function_clustering(X_scaled, config.target_clusters)
     y_pred["D-kernel"] = diffusion_kernel_clustering(X_scaled, config.target_clusters)
     y_pred["PIC"] = pic.fit_predict(X_scaled)
     
-    visualize_clusters(X_scaled, y_pred["PIC"], title="Definitive clusters")
+    visualize_clusters(X_scaled, y_pred["PIC"], title="Definitive clusters", save_path=PLOTS_DIR / f"{config.name}_pic.png")
+    
+    results = []
     for method in ["PIC","AP","A-Link","S-link","C-link","Zell","D-kernel"]:
         print(f" #################### {method} ####################")
-        # Compute and print Normalized Mutual Information Score (NMI)
+        
         nmis = normalized_mutual_info_score(y_true, y_pred[method])
-        print(f"Normalized mutual information score: {nmis:.4f}")
-        
-        # Compute and print Clustering Error (CE)
         ce = clustering_error(y_true, y_pred[method])
-        print(f"Clustering error: {ce:.4f}")
-        
-        # Compute and print Silhouette Score
         silhouette = silhouette_score(X_scaled, y_pred[method]) 
-        print(f"Silhouette score: {silhouette:.4f}")
-        
-        # Compute and print Davies-Bouldin Index
         davies_bouldin = davies_bouldin_score(X_scaled, y_pred[method])
-        print(f"Davies-Bouldin Index: {davies_bouldin:.4f}")
-        
-        # Compute and print Calinski-Harabasz Index
         calinski_harabasz = calinski_harabasz_score(X_scaled, y_pred[method])
+        
+        print(f"Normalized mutual information score: {nmis:.4f}")
+        print(f"Clustering error: {ce:.4f}")
+        print(f"Silhouette score: {silhouette:.4f}")
+        print(f"Davies-Bouldin Index: {davies_bouldin:.4f}")
         print(f"Calinski-Harabasz Index: {calinski_harabasz:.4f}")
+        
+        results.append({
+            'Method': method,
+            'NMI': nmis,
+            'Clustering Error': ce,
+            'Silhouette Score': silhouette,
+            'Davies-Bouldin Index': davies_bouldin,
+            'Calinski-Harabasz Index': calinski_harabasz
+        })
+        
+    df_results = pd.DataFrame(results)
+    df_results.to_csv(os.path.join(DATA_DIR,f'{config.name}_results.csv'), index=False)
 
 def evaluate_clustering(X, y_true, noise_level, n_clusters, noise_type="gaussian"):
     nmi_scores = {
@@ -84,7 +92,7 @@ def evaluate_clustering(X, y_true, noise_level, n_clusters, noise_type="gaussian
         "PIC": []
     }
     
-    for _ in range(20):  # Repeat for 20 times
+    for _ in tqdm.tqdm(range(20)):
         # Add noise to the data
         if noise_type == "gaussian":
             X_noisy = add_gaussian_noise(X, noise_level)
@@ -144,7 +152,7 @@ def plot_results(results: dict, x_indices):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False)
 
 def run_noise_experiment(config: Config):
     print("Getting data")
@@ -188,10 +196,16 @@ def run_noise_experiment(config: Config):
     plot_results(results_structural, structural_noise_levels)
 
 if __name__ == "__main__":
-    config = Config(
-        dataset_name="synthetic",
-        n_samples=1000,
-        n_features=10,
-        target_clusters=10
-    )
-    run_noise_experiment(config)
+    # Synthetic dataset noise experiment
+    # config = Config(
+    #     name="synthetic_noise",
+    #     dataset_name="synthetic",
+    #     n_samples=1000,
+    #     n_features=10,
+    #     target_clusters=10
+    # )
+    # run_noise_experiment(config)
+    
+    configs = load_configs()
+    for config in configs:
+        test(config)

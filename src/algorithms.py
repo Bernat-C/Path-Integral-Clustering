@@ -12,7 +12,7 @@ def run_ap(X):
 
 def runAC(X, target_clusters, method='average'):
     # Runs Agglomerative Clustering with Average Linkage (A-Link) and S-Link and C-Link
-    agglo_avg = AgglomerativeClustering(n_clusters=target_clusters, linkage=method) # average, single, complete
+    agglo_avg = AgglomerativeClustering(n_clusters=target_clusters, metric='euclidean', linkage=method) # average, single, complete
     agglo_avg_labels = agglo_avg.fit_predict(X)
     return agglo_avg_labels
     

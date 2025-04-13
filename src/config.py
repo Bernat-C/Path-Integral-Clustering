@@ -5,6 +5,7 @@ from pydantic import BaseModel
 DatasetName = Literal["usps", "mnist", "bc_wisconsin", "synthetic"]
 
 class Config(BaseModel):
+    name: str
     dataset_name: DatasetName
     n_samples: int = None
     n_features: int = None
@@ -15,13 +16,19 @@ class Config(BaseModel):
 def load_configs():
     experiment_configs: List[Config] = [
         Config(
-            dataset_name = "usps"
+            name = "usps",
+            dataset_name = "usps",
+            target_clusters=10
         ),
         Config(
-            dataset_name = "mnist"
+            name = "mnist",
+            dataset_name = "mnist",
+            target_clusters=5
         ),
         Config(
-            dataset_name = "bc_wisconsin"
+            name = "bc_wisconsin",
+            dataset_name = "bc_wisconsin",
+            target_clusters=2
         )
     ]
     

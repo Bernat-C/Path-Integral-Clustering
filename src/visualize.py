@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
-def visualize_clusters(X, y, title="Clustering Visualization"):
+def visualize_clusters(X, y, title="Clustering Visualization", save_path = False):
     """Visualizes clustering results in 2D
 
     Args:
@@ -28,5 +28,8 @@ def visualize_clusters(X, y, title="Clustering Visualization"):
     cbar = plt.colorbar(scatter)
     cbar.set_label("Cluster", fontsize=12)
 
-    # Show the plot
-    plt.show()
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path)
+    else:
+        plt.show(block=False)
