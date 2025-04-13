@@ -1,0 +1,263 @@
+\documentclass[
+	10pt,
+	parskip=half-,	
+	paper=a4,
+	english
+	]{scrartcl}	
+\usepackage{graphicx} % Required for inserting images
+\usepackage{datetime}
+
+\usepackage[english]{babel} 
+\textheight = 220mm		
+\footskip = 2cm		
+\title{Title of the project}
+\author{Author}
+\date{\newdateformat{monthyeardate}{%
+  \monthname[\THEMONTH], \THEYEAR}}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdftitle={projectname},
+}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\pagestyle{fancy}
+\lhead{AC via maximum incremental path integral}
+\rhead{Bernat Comas}
+\date{}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{\fill}
+
+    {\Huge\bfseries Agglomerative clustering via maximum incremental path integral: an implementation}
+    \vspace{1cm}
+    
+    {\bfseries Unsupervised and Reinforcement Learning\\} % Second line of the title
+    \vspace{0.5cm}
+    {\bfseries \today}
+    \vspace{1.5cm}
+
+    {\Large Bernat Comas i Machuca}
+    \vspace{0.5cm}
+
+    {\Large \date{\newdateformat{monthyeardate}{%
+  \monthname[\THEMONTH], \THEYEAR}}}
+
+    \vspace*{\fill} % Vertically center the content
+
+\end{titlepage}
+
+\newpage			
+\tableofcontents
+\newpage
+\section {Introduction to the problem}
+
+The paper Agglomerative clustering via maximum incremental path integral (2013) \cite{citation1} presents a new agglomerative clustering algorithm that computes cluster similarity based on path graphs that capture the data structure. To make this computation each cluster is treated as a dynamic system and the algorithm measures stability using the Path Integral, a concept extracted from statistical mechanics and quantum mechanics. The algorithm decides how to merge clusters based on how much their stability changes, which results in an efficient solution with linear time complexity.
+
+To define the structural descriptors that allow to compute this concept of similarity, a neighborhood graph is created. This allows it to avoid relying as much in pairwise distances (only used for graph initialization), and instead define the affinity between clusters by how much their stability changes when merged, which is measured through the path integral.
+
+This has several advantages:
+
+\begin{itemize}
+    \item Works well for data lying on low-dimensional manifolds.
+    \item It does not rely on approximation or eigen-decomposition, making it more robust to noise.
+    \item It does not make assumptions on data distribution, offering better generalization.
+    \item Performs well on multi-scale data
+    \item It is efficiently computed by the presented algorithm in linear time complexity
+\end{itemize}
+
+Over the course of this project, we are going to implement the Path Integral Clustering algorithm in an efficient way, and then we are going to compare it to other well-known clustering algorithms. In this section we are going to describe the algorithm, section 2 contains a description of the implementation , in section 3 the algorithm experiments and comparison is performed, and finally the last section is devoted to describing the conclusions of the project.
+
+\subsection{Cluster initialization}
+
+Because we are working with an Agglomerative Clustering algorithm, we have to define how will the initial clusters be formed. We could initialize the samples each in its own cluster and start the iteration, but instead the paper proposes to use nearest neighbor merging. 
+
+The algorithm of nearest neighbor merging consists of having each sample in its own cluster together with its nearest neighbor and then, the clusters that share samples are merged. This results in a number of initial clusters that is at least half the number of samples.
+
+\subsection{Building the structural graph}
+
+We define the structural graph G as the directed graph where each initial sample X is a node and E the set of edges connecting them. Two samples are connected by an edge if they are in its K closest neighbors (for a predefined graph).
+
+Then, we compute the weighted adjacency matrix W, which contains the pairwise similarities between each pair of samples. Note that we are only computing similarities between each point and its K closest neighbors, the rest of similarities will be 0. Therefore, each element \(w_ij)\) of the matrix W is defined as shown in Equation \ref{eq1}.
+
+\begin{equation}
+    w_{ij} =
+    \begin{cases} 
+    \exp \left( \frac{-\text{dist}(i,j)^2}{\sigma^2} \right), & \text{if } \mathbf{x}_j \in \mathcal{N}_i^K, \\
+    0, & \text{otherwise}.
+    \end{cases}
+    \label{eq1}
+\end{equation}
+
+Where \textit{K} is a free parameter to be set and \(\sigma^2\) is estimated by Equation \ref{eq4}.
+
+\begin{equation}
+    \sigma^2 = [\sum_{j=1}^{n}\sum_{x_j\in \mathcal{N}_i^3}dist(i,j)^2] / [3n(-ln(a))]
+    \label{eq4}    
+\end{equation}
+
+Where \textit{a} is a parameter to be set.
+
+We define the transition probability matrix \textit{P} as the one-step transition probability from vertex i to vertex j, and we compute it using Equation \ref{eq5}.
+
+\begin{equation}
+    \begin{split}
+    P = D^{-1}W; 
+    \\
+    d_{ii} = \sum_{j=1}^n w_{ij}
+    \text{ such that }
+    \sum_{j=1}^n p_{ij}=1
+    \end{split}
+    \label{eq5}
+\end{equation}
+
+\subsection{Affinity measure: Path integral}
+
+The path integral of a cluster is computed by summing the paths in the cluster on the directed graph \textit{G}, weighted by transition probabilities in \textit{P}.
+
+The path integral used is a discretization of the one seen in quantum mechanics, and is defined as a sum of the weighted contributions of all the paths in the cluster C, divided by the number of samples belonging to the cluster. This is called the path integral descriptor of a cluster \(C_a\), which we call \(S_{C_a}\), and is defined in Equation \ref{eq2}.
+\ref{eq2}.
+
+\begin{equation}
+    S_c = \frac{1}{|C|^2}\sum_{\gamma\in\Gamma_c}{\Theta(\gamma)}
+\label{eq2}
+\end{equation}
+
+Where, \(\Gamma_c\) is the set of all paths in C and \(\Theta(\gamma)\) the weight of a path.
+
+We also define the conditional path integral descriptor \(S_{C_a|C_a\cup C_b}\) between two clusters \(S_{C_a}\) and \(S_{C_b}\) as the path descriptor of the clustering resulting from the merge but only taking into account the paths that have starting and ending vertices in \(C_a\). We compute the conditional path integral descriptor using Equation \ref{eq6}.
+
+\begin{equation}
+    S_{C_a|C_a\cup C_b} = \frac{1}{|C_a|^2} \boldsymbol{1}_{C_a}^{T}(\boldsymbol{I}-z\boldsymbol{P}_{C_a\cup C_b})^{-1}\boldsymbol{1}_{C_a}
+    \label{eq6}
+\end{equation}
+
+Now, we can compute the affinity \(A_{C_a,C_b}\) of the merging of two clusters \(C_a\) and \(C_b\) by the increment in the path integral descriptor shown in the previous equations \ref{eq2} and \ref{eq6}, as can be seen in Equation \ref{eq3}. In addition to the path integral of each cluster separately \(S_{C_a}\) and \(S_{C_b}\), the computation of the affinity uses the conditional path integral descriptor \(S_{C_a|C_a\cup C_b}\), which computes the resulting path descriptor of the merge but only the ones that have starting and ending vertices in \(C_a\).
+
+\begin{equation}
+    A_{C_a,C_b} = (S_{C_a|C_a\cup C_b}-S_{C_a}) + (S_{C_b|C_a\cup C_b}-S_{C_b})
+    \label{eq3}
+\end{equation}
+
+\subsection{Agglomerative algorithm}
+
+The input to our problem is a set of sample vectors together with the target number of clusters (that has to be predefined).
+
+The algorithm starts by building the graph, weighted adjacency matrix \(W\), and using it to obtain the transition probability matrix \(P\). Then, cluster initialization is run to obtain the initial clusters.
+
+The iterative part consists of merging the two most affine clusters we have until the number of clusters is the target one. To do so, we use the precomputed affinities between all pairs of clusters. The pseudocode of the algorithm can be seen in Algorithm \ref{algorithmpseudo}.
+
+\begin{algorithm}
+\caption{Path Integral Clustering Algorithm}
+\begin{algorithmic}[1]
+    \State \textbf{INPUT} The set of $n$ points to cluster $\mathcal{X} = \{\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n\}$, and the target number of clusters $n_T$.
+    \State Build the graph $G$ with $k$-nearest-neighbors and compute its weighted adjacency matrix $\mathbf{W}$.
+    \State Get the transition probability matrix $\mathbf{P}$
+    \State Run nearest neighbour merging to form $n_c$ initial clusters $\mathcal{C}_c = \{\mathcal{C}_1, \ldots, \mathcal{C}_{n_c}\}$.
+    \While{$n_c > n_T$}
+        \State Search two clusters $\mathcal{C}_a$ and $\mathcal{C}_b$, such that 
+        \[
+        \{\mathcal{C}_a, \mathcal{C}_b\} = \arg\max_{\mathcal{C}_a, \mathcal{C}_b \in \mathcal{C}_c} \mathcal{A}_{\mathcal{C}_a, \mathcal{C}_b}
+        \]
+        where $\mathcal{A}_{\mathcal{C}_a, \mathcal{C}_b}$ is the affinity measure between $\mathcal{C}_a$ and $\mathcal{C}_b$.
+        \State $\mathcal{C}_c \leftarrow \{\mathcal{C}_c \setminus \{\mathcal{C}_a, \mathcal{C}_b\} \} \cup \{\mathcal{C}_a \cup \mathcal{C}_b\}$
+        \State $n_c \leftarrow n_c - 1$
+    \EndWhile
+    \State \textbf{OUTPUT} $\mathcal{C}_c$
+\end{algorithmic}
+\label{algorithmpseudo}
+\end{algorithm}
+
+\section {Description of the implementation}
+
+In this section we are going to describe the particularities of the implementation of the Path Integral Clustering Algorithm. The first section goes over the implementation techniques recommended by the paper, and the second one contains the extra decisions made during the implementation. 
+
+During the implementation, efficiency was our priority. The full implementation of the algorithm is contained in the files \textit{pic.py}, \textit{nearest\_neighbour\_init.py} and \textit{path\_integral.py}. The rest of files are helpers that have contributed to the results obtained but are not part of the implementation itself.
+
+\subsection{Efficient computation of the path integral}
+
+The main ideas laid out by the paper about the implementation are on the computation of the path integral between two clusters. They use Theorem \ref{th1} to avoid computing a matrix inverse but instead solve a linear system.
+
+\begin{equation}
+    \label{th1}
+\end{equation}
+
+
+\subsection{Implementation decisions}
+
+Because we want our algorithm to run in linear time, we need to precompute everything we can, and that includes not only the graph and its transition matrices, but also the affinity between each pair of clusters. Because as can be seen in \ref{algorithmpseudo} the decision on the clusters to merge is an argmax, we need to have computed the affinities between all pairs of clusters to compare them.
+
+In addition to this, we are using a heap to store all the cluster pairs and their affinities for fast extraction in runtime. This brought us to use a set to store the clusters that are active in a moment, to avoid having to traverse the heap to remove all pairs of clusters that contains one of the merged ones at each iteration. This means that at every iteration we are flagging the merged clusters as inactive, computing the affinities between the new cluster and all the previous ones, and adding them to the heap.
+
+Due to the nature of our algorithm, we only implement the fit-predict method. This is because the algorithm does not learn from data but instead applies the same process to the samples to cluster them independently from the data it has seen.
+
+\section {Experiments}
+
+In this project, we will conduct experiments comparing different clustering algorithms on several datasets. The algorithms under evaluation include Affinity Propagation, Complete Link, Average Link, Simple Link, Zell, and of course, our implementation of PIC. Each algorithm will be tested on four datasets: MNIST, USPS, Breast Cancer (Wisconsin), and a synthetic random dataset with 1000 samples and 50 features. The goal is to analyze the performance and effectiveness of these algorithms in terms of clustering quality and efficiency across different types of data.
+
+The reason of selecting these algorithms to be compared is because we have only found implementations for the Affinity Propagation, Complete, Average and Simple Links, and to be able to compare it to some of the algorithms that get the most similar results in the paper we have manually implemented the diffusion Kernel (D-kernel) and Zeta function clustering (Zell), that get some of the best results in the paper after the PIC.
+
+The metrics we will be using to compare the methods are the ones that are used in the paper: Normalized Mutual Information score and Clustering error, and as both of these are external metrics we have extended it with some internal ones, by the addition of Silhouette, Davies-Bouldin and Calinski-Harabasz. We have selected these three internal metrics because they are the ones recommended as internal criteria for a wide range of situations by the "Clustering evaluation and validation" chapter of the material of the Unsupervised Learning course \cite{citation2}. 
+
+The datasets chosen are some of the ones that are used in the paper: MNIST and USPS. We opted not to use the FRGC ver2.0, PubFig, and Caltech datasets for this study due to their large size, which would require significant computational resources and time for processing. Instead, we have decided to incorporate the Breast-cancer wisconsin dataset because it is a well-known benchmark in the medical domain, containing a high-dimensional, real-world classification and being widely used. We don't have access to the synthetic datasets that are used in the paper, and for this reason we have implemented our own. With our dataset, we will also study how does structural and gaussian noise affect our implementation of the clustering algorithm. Our synthetic dataset has 1000 samples, 10 features and 10 target clusters. We are going to do the same study as they did by introducing gaussian noise and structural noise.
+
+- TODO: Table containing dataset size and information
+- BC Wisconsin: Biclass, as many merges as possible
+- Synthetic: All param combinations are repeated 20 times
+\begin{table}[h]
+\centering
+\caption{Statistics of used datasets.}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+\midrule
+No. of samples     & 11\,000 & 5\,139 & 569 & 1000 \\
+No. of clusters    & 10     & 5     & 2    & 10   \\
+Min. cluster size  & 1100   & 980   & 212     & - \\
+Max. cluster size  & 1100   & 1135  & 357     & - \\
+Noise added  & No   & No  & No     & Yes \\
+Dimensionality     & 256    & 784   & 30   & 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Noise analysis}
+
+\subsection{Algorithm comparison}
+
+...
+
+\section{Conclusions}
+
+Comment about the claims of the paper, reproducibility \& issues encountered.
+
+\newpage
+\section{Bibliography}
+
+\renewcommand{\section}[2]{}%
+\begin{thebibliography}{9}
+
+\bibitem{citation1}
+Wei Zhang et al.,
+\textit{Agglomerative clustering via maximum incremental path integral}, 2013
+\href{https://www.sciencedirect.com/science/article/pii/S0031320313001830}{(Link)}
+
+\bibitem{citation2}
+Javier Béjar,
+URL - 2025 Spring Term
+\textit{Clustering evaluation and validation}
+
+\end{thebibliography}
+
+\end{document}
