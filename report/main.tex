@@ -325,6 +325,8 @@ In this section we will run experiments using the previously described synthetic
 
 \subsection{Algorithm comparison}
 
+This section presents a comparative analysis of several clustering algorithms across four datasets: USPS, MNIST, BC-Wisconsin, and a Synthetic dataset.
+
 \begin{table}[h]
     \centering
     \caption{Quantitative clustering results in NMI. The best values are in bold.}
@@ -341,9 +343,7 @@ In this section we will run experiments using the previously described synthetic
     PIC & \textbf{0.8708} & 0.0063 & 0.0102 & 1 \\
     \bottomrule
     \end{tabular}
-    \end{table}
-
-\section{Conclusions}
+\end{table}
 
 \begin{table}[h]
     \centering
@@ -361,7 +361,79 @@ In this section we will run experiments using the previously described synthetic
     PIC & \textbf{0.1150} & 0.7772 & 0.3691 & 0 \\
     \bottomrule
     \end{tabular}
-    \end{table}
+\end{table}
+
+The Normalized Mutual Information (NMI) metric quantifies the similarity between clustering assignments and ground truth labels, where higher values indicate better alignment. According to the original paper, the implemented algorithm outperformed other methods on the USPS and MNIST datasets. However, the current implementation and evaluation reveal some notable differences.
+
+On the USPS dataset, PIC indeed achieves the highest NMI value of 0.8708, confirming the original paper's claim and reaffirming its strong performance in capturing the underlying cluster structure. 
+
+For MNIST, a significant divergence from the paper's findings emerges. While PIC is reported as the top performer in the original study, it achieves only 0.0063 NMI here, with Zell dramatically outperforming it at 0.6293. This inversion suggests that in this replication, either PIC struggled to converge to meaningful clusters, or its assumptions were not well-suited to the MNIST data in this particular implementation. It could also imply that Zell, perhaps under different parameter settings or with the specific MNIST preprocessing used here, was better able to exploit the dataset's structure.
+
+On BC-Wisconsin, which was not reported in the original paper, Zell again clearly leads with an NMI of 0.5679, followed by AP at 0.2596. All other methods, including PIC, performed very poorly here, indicating that Zell may be particularly effective in handling this dataset’s cluster characteristics — likely benefitting from its capacity for detecting more globally separated clusters, as seen in earlier Silhouette and CH scores.
+
+\begin{table}[h]
+    \centering
+    \caption{Quantitative clustering results in Silhouette score}
+    \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \midrule
+    AP       & 0.077   & 0.0558 & 0.0870  & 0 \\
+    A-link   & 0.2806  & 0.7832 & 0.6339  & 0   \\
+    S-link   & 0.3089   & 0.7832 & 0.6606  & 0 \\
+    C-link   & 0.1945   & 0.7832 & 0.6606  & 0 \\
+    Zell     & 0.0681   & -0.0389 & 0.3263  & 0 \\
+    D-kernel & 0.6698   & 0.6349 & 0.6606  & 0 \\
+    PIC      & 0.1390  & 0.5941 & 0.6606 & 0 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \caption{Quantitative clustering results in DBI}
+    \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \midrule
+    AP       & 1.8701   & 1.5212 & 1.3622  & 0 \\
+    A-link   & 1.1553  & 0.1325 & 0.6798  & 0   \\
+    S-link   & 0.4623   & 0.1325 & 0.4497  & 0 \\
+    C-link   & 2.4111   & 0.1325 & 0.4497  & 0 \\
+    Zell     & 2.0193   & 3.3001 & 1.3537  & 0 \\
+    D-kernel & 2.1858   & 3.0414 & 0.4497  & 0 \\
+    PIC     & 2.3121    & 1.5937 & 0.4497 & 0 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \caption{Quantitative clustering results in Calinski-Harabasz}
+    \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \midrule
+    AP       & 68.3675   & 25.6472 & 39.0207  & 0 \\
+    A-link   & 22.2013  & 52.8586 & 32.4822  & 0   \\
+    S-link   & 4.5830   & 52.8586 & 27.8726  & 0 \\
+    C-link   & 242.2214   & 52.8586 & 27.8726  & 0 \\
+    Zell     & 697.2199   & 185.1767 & 258.9817  & 0 \\
+    D-kernel & 337.163   & 46.1865 & 27.8726  & 0 \\
+    PIC      & 517.6182 & 27.6675 & 27.8726 & 0 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+The Silhouette Score, which measures how similar an object is to its own cluster compared to other clusters, revealed that on the MNIST dataset, the A-link, S-link, and C-link methods all achieved identical and notably high scores of 0.7832. This indicates that these methods produced clusters with a high degree of compactness and separation. On the USPS dataset, the D-kernel method outperformed others with a Silhouette Score of 0.6698, suggesting it formed well-defined clusters in this setting. For the BC-Wisconsin dataset, the S-link, D-kernel, and PIC methods all tied with a strong score of 0.6606.
+
+When considering the Davies-Bouldin Index (DBI), where lower values signify better clustering, consistent patterns are found. On the USPS dataset the S-link method achieves the lowest DBI at 0.4623, outperforming other algorithms in terms of minimizing intra-cluster variance while maximizing inter-cluster separation. For the BC-Wisconsin dataset, the S-link, C-link, D-kernel, and PIC methods shared a DBI value of 0.4497, proving their effectiveness. Zell, D-kernel, and PIC generally performed worse in this metric on MNIST and USPS, despite competitive performances elsewhere.
+
+The Calinski-Harabasz Index (CHI), which rewards high between-cluster dispersion and low within-cluster dispersion, offered a contrasting perspective. The Zell method achieved exceptionally high CHI scores on all three real datasets, particularly on BC-Wisconsin, where it recorded a value of 258.98 — considerably surpassing other algorithms. On the USPS dataset, Zell again led with a CHI of 697.22, followed by PIC and D-kernel with notable but lower scores. Although Zell consistently achieved high CHI values, it did not perform as well in the Silhouette and DBI metrics, suggesting that while it can create globally dispersed clusters, they might lack local compactness.
+
+In summary, the results highlight that S-link and A-link methods exhibit balanced, reliable performance across all datasets and metrics, making them strong general-purpose clustering techniques. The D-kernel method excels particularly on the USPS dataset, while Zell demonstrates outstanding performance in terms of global cluster dispersion (as measured by CHI) but falls behind in terms of compactness and separation as captured by the Silhouette and DBI scores. The Synthetic dataset’s consistent zero scores across all methods suggest either a lack of inherent cluster structure or a potential oversight in the evaluation process that warrants further investigation.
+
+These findings underscore the importance of using multiple complementary metrics to assess clustering performance, as different algorithms may excel under different criteria. Based on this analysis, S-link and A-link emerge as particularly reliable choices when seeking balanced clustering performance across various datasets.
 
 \section{Conclusions}
 
