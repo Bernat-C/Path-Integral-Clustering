@@ -102,22 +102,22 @@ def evaluate_clustering(X, y_true, noise_level, n_clusters, noise_type="gaussian
         
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X_noisy)
-    
+        
         # Apply clustering
         y_pred = {}
         pic = PathIntegralClustering(n_clusters, z=0.01, a=0.95, K=20)
         y_pred["AP"] = run_ap(X_scaled)
-        y_pred["A-Link"] = runAC(X_scaled, config.target_clusters, method='average')
-        y_pred["S-link"] = runAC(X_scaled, config.target_clusters, method='single')
-        y_pred["C-link"] = runAC(X_scaled, config.target_clusters, method='complete')
+        y_pred["A-Link"] = runAC(X_scaled, n_clusters, method='average')
+        y_pred["S-link"] = runAC(X_scaled, n_clusters, method='single')
+        y_pred["C-link"] = runAC(X_scaled, n_clusters, method='complete')
         y_pred["Zell"] = zeta_function_clustering(X_scaled, n_clusters)
         y_pred["D-kernel"] = diffusion_kernel_clustering(X_scaled, n_clusters)
         y_pred["PIC"] = pic.fit_predict(X_scaled)
         
-        # Compute NMI score
-        for key, val in y_pred.items():
-            nmi_score = normalized_mutual_info_score(y_true_def, val)
-            nmi_scores[key].append(nmi_score)
+        for alg, result in y_pred.items():
+            visualize_clusters(X_scaled, result, title="Definitive clusters", save_path=PLOTS_DIR / f"{config.name}_{config.dataset_name}_{alg}_{noise_type}_{noise_level}.png")
+            nmi_score = normalized_mutual_info_score(y_true_def, result)
+            nmi_scores[alg].append(nmi_score)
     
     # Return average NMI and standard deviation
     dist_nmi_scores = {}
@@ -129,50 +129,70 @@ def evaluate_clustering(X, y_true, noise_level, n_clusters, noise_type="gaussian
 def run_noise_experiment(config: Config):
     print("Getting data")
     n_centers = config.target_clusters
-    X, y_true = generate_synthetic(n_samples=config.n_samples, n_features=config.n_features, centers=n_centers,random_state=42)
+    exp_type = config.dataset_name
+    X, y_true = generate_synthetic(n_samples=config.n_samples, n_features=config.n_features, centers=n_centers,ds_type=config.dataset_name)
+    n_centers = len(set(y_true))
     
     gaussian_noise_levels = [1,1.2,1.4,1.6,1.8]
     structural_noise_levels = [0,0.05,0.1,0.15,0.2,0.25]
     
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
+        
     results_gaussian = []
-    file_gaussian = os.path.join(DATA_DIR,'gaussian_noise_comparison.pkl')
-    if os.path.exists(file_gaussian):
-        with open(file_gaussian, 'rb') as f:
-            results_gaussian = pkl.load(f)
+    csv_file_gaussian = os.path.join(DATA_DIR, f'gaussian_noise_{exp_type}.csv')
+    
+    if os.path.exists(csv_file_gaussian):
+        df_result = pd.read_csv(csv_file_gaussian)
     else:
-        for noise_level in tqdm.tqdm(gaussian_noise_levels, desc=f"Running gaussian noise experiment"):
-            results_gaussian.append(evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "gaussian"))
-        with open(os.path.join(DATA_DIR,'gaussian_noise_comparison.pkl'), 'wb') as f:
-            pkl.dump(results_gaussian, f)
+        df_result = pd.DataFrame()
+    
+    for noise_level in (pbar := tqdm.tqdm(gaussian_noise_levels, desc=f"Running gaussian noise experiment")):
+        if 'noise_level' in df_result.columns and noise_level in df_result['noise_level'].values:
+            continue
+        
+        pbar.set_postfix({'noise_level': noise_level})
+        
+        result = evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "gaussian")
+        result['noise_level'] = noise_level
+        results_gaussian.append(result)
+        
+        df_result = pd.DataFrame(results_gaussian)
+        df_result.to_csv(csv_file_gaussian, index=False)
         
     results_structural = []
-    file_structural = os.path.join(DATA_DIR,'structural_noise_comparison.pkl')
-    if os.path.exists(file_structural):
-        with open(file_structural, 'rb') as f:
-            results_structural = pkl.load(f)
-    else:
-        for noise_level in tqdm.tqdm(structural_noise_levels, desc=f"Running structural noise experiment"):
-            results_structural.append(evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "structural"))
+    csv_file_structural = os.path.join(DATA_DIR, f'structural_noise_{exp_type}.csv')
     
-        with open(os.path.join(DATA_DIR,'structural_noise_comparison.pkl'), 'wb') as f:
-            pkl.dump(results_structural, f)
+    if os.path.exists(csv_file_structural):
+        df_result = pd.read_csv(csv_file_structural)
+    else:
+        df_result = pd.DataFrame()
+    
+    for noise_level in (pbar := tqdm.tqdm(structural_noise_levels, desc=f"Running structural noise experiment")):
+        
+        pbar.set_postfix({'noise_level': noise_level})
+        
+        result = evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "structural")
+        result['noise_level'] = noise_level
+        results_gaussian.append(result)
+        
+        df_result = pd.DataFrame(results_structural)
+        df_result.to_csv(csv_file_structural, index=False)
         
     plot_noise_results(results_gaussian, gaussian_noise_levels, noise_type="Gaussian", save_path=PLOTS_DIR / f"results_gaussian_noise.png")
     plot_noise_results(results_structural, structural_noise_levels, noise_type="Structural", save_path=PLOTS_DIR / f"results_structural_noise.png")
 
 if __name__ == "__main__":
     # Synthetic dataset noise experiment
-    config = Config(
-        name="synthetic_noise",
-        dataset_name="synthetic",
-        n_samples=1000,
-        n_features=10,
-        target_clusters=10
-    )
-    run_noise_experiment(config)
+    for ds in ["moons","blobs","circles"]:
+        config = Config(
+            name=f"synthetic_noise_{ds}",
+            dataset_name=ds,
+            n_samples=1000,
+            n_features=2,
+            target_clusters=10
+        )
+        run_noise_experiment(config)
     
     # configs = load_configs()
     # for config in configs:

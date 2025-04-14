@@ -238,7 +238,7 @@ The choice of the algorithms we are using is due to the fact that we only have f
 
 The datasets chosen are also extracted from the paper: MNIST and USPS. We opted not to use the FRGC ver2.0, PubFig, and Caltech datasets for this study due to their large size, which would require significant computational resources and time for processing, apart from the approach the paper takes on loading them, which uses spatial pyramid features. Instead, we have decided to incorporate the Breast-cancer wisconsin dataset because it is a well-known benchmark in the medical domain, containing a high-dimensional, real-world classification and being widely used. In addition, being a binary classification dataset, it stands out from the rest and means that the algorithms will have to iterate until only two clusters are remaining, apart from being something not tested in the original paper.
 
-We don't have access to the synthetic datasets that are used in the paper, and for this reason we have decided to create our. It will be using the synthetic dataset that we will study how does structural and gaussian noise affect our implementation of the clustering algorithm. Our synthetic dataset has 1000 samples, 10 features and 10 target clusters.
+We don't have access to the synthetic datasets that are used in the paper, and for this reason we have decided to create our own. It will be using the synthetic datasets that we will study how does structural and gaussian noise affect our implementation of the clustering algorithm. We are going to use three different synthetic datasets, the first one using moons, second one using concentric circles and last one using blobs. Our synthetic datasets will have 1000 samples, 2 features for ease of representation (same as the ones in the paper) and 10 target clusters.
 
 \begin{table}[h]
 \centering
@@ -252,7 +252,7 @@ No. of clusters    & 10     & 5     & 2    & 10   \\
 Min. cluster size  & 1100   & 980   & 212     & - \\
 Max. cluster size  & 1100   & 1135  & 357     & - \\
 Noise added  & No   & No  & No     & Yes \\
-Dimensionality     & 256    & 784   & 30   & 10 \\
+Dimensionality     & 256    & 784   & 30   & 2 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -325,7 +325,43 @@ In this section we will run experiments using the previously described synthetic
 
 \subsection{Algorithm comparison}
 
-...
+\begin{table}[h]
+    \centering
+    \caption{Quantitative clustering results in NMI. The best values are in bold.}
+    \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \midrule
+    AP       & 0.5176   & 0.4170 & 0.2596  & 1 \\
+    A-link   & 0.01128  & 0.0016 & 0.0151  & 1   \\
+    S-link   & 0.0019   & 0.0016 & 0.0102  & 1 \\
+    C-link   & 0.1592   & 0.0016 & 0.0102  & 1 \\
+    Zell     & 0.5743   & \textbf{0.6293} & \textbf{0.5679}  & 1 \\
+    D-kernel & 0.2455   & 0.0038 & 0.0102  & 1 \\
+    PIC & \textbf{0.8708} & 0.0063 & 0.0102 & 1 \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
+
+\section{Conclusions}
+
+\begin{table}[h]
+    \centering
+    \caption{Quantitative clustering results in Clustering error.The best values are in bold.}
+    \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \midrule
+    AP       & 0.9272   & 0.9527 & 0.8963  & 0 \\
+    A-link   & 0.8285  & 0.7785 & 0.3673  & 0   \\
+    S-link   & 0.8328   & 0.7785 & 0.3691  & 0 \\
+    C-link   & 0.7634   & 0.7785 & 0.3691  & 0 \\
+    Zell     & 0.4450   & \textbf{0.3592} & \textbf{0.0844}  & 0 \\
+    D-kernel & 0.6698   & 0.7772 & 0.3691  & 0 \\
+    PIC & \textbf{0.1150} & 0.7772 & 0.3691 & 0 \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
 
 \section{Conclusions}
 

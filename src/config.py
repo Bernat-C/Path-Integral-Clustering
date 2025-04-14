@@ -2,7 +2,7 @@
 from typing import List, Literal
 from pydantic import BaseModel
 
-DatasetName = Literal["usps", "mnist", "bc_wisconsin", "synthetic"]
+DatasetName = Literal["usps", "mnist", "bc_wisconsin", "moons","blobs","circles"]
 
 class Config(BaseModel):
     name: str

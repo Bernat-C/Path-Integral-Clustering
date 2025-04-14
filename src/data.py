@@ -4,17 +4,22 @@ import kagglehub
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision.datasets import USPS
-from sklearn.datasets import make_blobs
+from sklearn.datasets import make_blobs, make_circles, make_moons
 from sklearn.datasets import load_breast_cancer
 
-def generate_synthetic(n_samples, n_features, centers,random_state=None):
+def generate_synthetic(n_samples, n_features, centers, ds_type, random_state=None):
     """Generate a simple 2D clustering dataset using make_blobs."""
-    X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers, random_state=random_state)
+    if ds_type == "moons":
+        X, y = make_moons(n_samples=n_samples, noise=0.05, random_state=random_state)
+    elif ds_type == "circles":
+        X, y = make_circles(n_samples=n_samples, noise=0.05, random_state=random_state)
+    else:
+        X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers, random_state=random_state)
     return X, y
 
-def add_gaussian_noise(X, noise_level=0.1):
+def add_gaussian_noise(X, noise_level):
     # Generate Gaussian noise with mean 0 noise_level standard deviation
-    noise = np.random.normal(loc=0.0, scale=noise_level, size=X.shape)
+    noise = np.random.normal(loc=0.0, scale=noise_level/10, size=X.shape)
     return X + noise
 
 def add_structural_noise(X, y_true, noise_level=0.1):

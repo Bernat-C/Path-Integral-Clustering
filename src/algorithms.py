@@ -1,10 +1,14 @@
 from sklearn.cluster import AffinityPropagation, AgglomerativeClustering, KMeans
+from sklearn.exceptions import ConvergenceWarning
+import warnings
 from sklearn.metrics import pairwise_distances
 from scipy.sparse.linalg import eigsh
 import numpy as np
 
 # 1. Affinity Propagation (AP)
 def run_ap(X):
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
     ap = AffinityPropagation(random_state=42)
     ap_labels = ap.fit_predict(X)
     

@@ -10,7 +10,8 @@
 \contentsline {section}{\numberline {3}Experiments}{7}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Metrics to be used}{8}{subsection.3.1}%
 \contentsline {subsection}{\numberline {3.2}Noise analysis}{9}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Algorithm comparison}{9}{subsection.3.3}%
-\contentsline {section}{\numberline {4}Conclusions}{9}{section.4}%
-\contentsline {section}{\numberline {5}Bibliography}{10}{section.5}%
+\contentsline {subsection}{\numberline {3.3}Algorithm comparison}{10}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Conclusions}{10}{section.4}%
+\contentsline {section}{\numberline {5}Conclusions}{10}{section.5}%
+\contentsline {section}{\numberline {6}Bibliography}{11}{section.6}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 
