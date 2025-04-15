@@ -235,13 +235,15 @@ All the operations that involve the clustering algorithm use numpy, using matric
 
 \section {Experiments}
 
-In this section we will conduct experiments comparing different clustering algorithms on several datasets. The algorithms under evaluation include Affinity Propagation, Complete Link, Average Link, Simple Link, Zeta clustering (Zell), Difussion clustering, and of course, our implementation of PIC. Each algorithm will be tested on four datasets: MNIST, USPS, Breast Cancer (Wisconsin), and a synthetic random dataset with 1000 samples. We are going to divide the experiments section into two subsections. In the first subsection, we are going to analyse how does the introduction of gaussian noise and structural noise affect the performance of the different algorithms, similar to what is done in the original paper. In the second one, we are going to run the algorithms on the complete datasets to observe what are the differences in their performances, using a diverse set of metrics.
+In this section we will conduct experiments comparing different clustering algorithms on several datasets. The algorithms under evaluation include Affinity Propagation, Complete Link, Average Link, Simple Link, Zeta clustering (Zell), Difussion clustering, and of course, our implementation of PIC. Each algorithm will be tested on four datasets: MNIST, USPS, Breast Cancer (Wisconsin), and three differently-structured synthetic random datasets with 1000 samples each. We are going to divide the experiments section into several subsections. In the first subsection, we are going to talk about the metrics we are using to compare the models. In the second one, we are going to analyse the performance of the algorithms over the synthetic datasets. Next, we are going to run the algorithms on the complete datasets to observe what are the differences in their performances, using a diverse set of metrics. Finally, we are going to analyse how does the introduction of gaussian noise and structural noise affect the performance of the different algorithms, similar to what is done in the original paper.
 
-The choice of the algorithms we are using is due to the fact that we only have found implementations for the Affinity Propagation, Complete, Average and Simple Links. Although in the project we only had to implement PIC, we decided to also implement some of the algorithms that get the most similar results in the paper, and the selected algorithms to implement are the diffusion Kernel (D-kernel) and Zeta function clustering (Zell), because they are shown to be better than PIC in some domains in the original paper.
+The choice of the algorithms we are using is due to the fact that we only have found implementations for the Affinity Propagation, Complete, Average and Simple Links. Although in the project we only had to implement PIC, we decided to also implement some of the algorithms that get the most similar results in the paper, and the selected algorithms to implement are the diffusion Kernel (D-kernel) and Zeta function clustering (Zell), because they are shown to be better than PIC in some domains in the original paper. To do the PIC experiments, we are using exactly the same parameters recommended by the original paper, which are: \(K=20\), \(a=0.95\) and \(z=0.01\). The rest of the algorithms are using their default parameters, as we are not trying to tune them but rather compare them.
 
 The datasets chosen are also extracted from the paper: MNIST and USPS. We opted not to use the FRGC ver2.0, PubFig, and Caltech datasets for this study due to their large size, which would require significant computational resources and time for processing, apart from the approach the paper takes on loading them, which uses spatial pyramid features. Instead, we have decided to incorporate the Breast-cancer wisconsin dataset because it is a well-known benchmark in the medical domain, containing a high-dimensional, real-world classification and being widely used. In addition, being a binary classification dataset, it stands out from the rest and means that the algorithms will have to iterate until only two clusters are remaining, apart from being something not tested in the original paper.
 
-We don't have access to the synthetic datasets that are used in the paper, and for this reason we have decided to create our own. It will be through the synthetic datasets that we will study how does structural and gaussian noise affect our implementation of the clustering algorithm. To have datasets as diverse as possible, we are going to use three different ones, the first one using moons, second one using concentric circles and last one using blobs. Our synthetic datasets will have 1000 samples, 2 features for ease of representation (same as the ones in the paper) and 10 target clusters.
+It is worth noting that in our work, we used the original USPS dataset containing 9,298 samples, rather than the 11,000-sample version referenced in the paper. We chose to work with the authentic USPS dataset, as the source and details of the augmented version with additional samples used by the paper were unclear.
+
+We don't have access to the synthetic datasets that are used in the paper, and for this reason we have decided to create our own. It will be through the synthetic datasets that we will study how does structural and gaussian noise affect our implementation of the clustering algorithm. To have datasets as diverse as possible, we are going to use three different creation methods, the first one using moons, second one using concentric circles and last one using blobs. Our synthetic datasets will have 1000 samples, 2 features for ease of representation (same as the ones in the paper) and 10 target clusters.
 
 \begin{table}[h]
 \centering
@@ -262,7 +264,7 @@ Dimensionality     & 256    & 784   & 30   & 2 \\
 
 \subsection{Metrics to be used}
 
-The metrics we will be using to compare the methods are the same ones that are used in the paper: Normalized Mutual Information score and Clustering error, and as both of these are external metrics we decided to incorporate some internal ones: Silhouette score, Davies-Bouldin score, and Calinski-Harabasz Index. We have selected these three internal metrics because they are the ones recommended as internal criteria for a wide range of situations by the "Clustering evaluation and validation" chapter of the material of the Unsupervised Learning course \cite{citation2}. Their implementations can be seen in Equations \ref{eq9}, \ref{eq10}, \ref{eq11}, \ref{eq12}, and \ref{eq13}.
+The metrics we will be using to compare the methods include the same ones that are used in the paper: Normalized Mutual Information score and Clustering error. As both of these are external metrics we decided to incorporate some internal ones: Silhouette score, Davies-Bouldin score, and Calinski-Harabasz Index. We have selected these three internal metrics because they are the ones recommended as internal criteria for a wide range of situations by the "Clustering evaluation and validation" chapter of the material of the Unsupervised Learning course \cite{citation2}. Their implementations can be seen in Equations \ref{eq9}, \ref{eq10}, \ref{eq11}, \ref{eq12}, and \ref{eq13}.
 
 \begin{equation}
     \text{NMI}(U, V) = \frac{2 \times I(U; V)}{H(U) + H(V)}
@@ -322,7 +324,7 @@ where:
 
 \subsection{Synthetic datasets}
 
-In this section, we present the results on the synthetic datasets. In Figure \ref{fig:synthetic_results_grid} the three best algorithms for each one of the synthetic datasets are presented. The complete data for the synthetic datasets can be observed in Table \ref{tab:synthetic_results}. The first dataset we created, blobs, presented in images a, b and c inside Figure \ref{fig:synthetic_results_grid}, 
+In this section, we present the results on the synthetic datasets. In Figure \ref{fig:synthetic_results_grid} the three best algorithms for each one of the synthetic datasets are presented. The complete data for the synthetic datasets can be observed in Table \ref{tab:synthetic_results}. 
 
 \begin{figure}[ht]
     \centering
@@ -373,11 +375,17 @@ In this section, we present the results on the synthetic datasets. In Figure \re
     \label{fig:synthetic_results_grid}
 \end{figure}
 
-The results for the synthetic dataset present some relevant information. As can be seen, for the blobs dataset, PIC is between the three best models, the three of them presenting very similar results.
+The results obtained from the synthetic datasets reveal several interesting patterns. In the case of the first dataset, blobs — shown in images (a), (b), and (c) of Figure \ref{fig:synthetic_results_grid} — all algorithms performed well, with the top three achieving nearly identical results, each surpassing 0.84 in Normalized Mutual Information (NMI).
+
+For the second dataset, results indicate that while three algorithms managed to perfectly separate the data, suggesting the dataset is not particularly challenging, the remaining algorithms showed significantly weaker performance. This disparity can be attributed to the specific characteristics and structure of the dataset, which may not align well with the assumptions of those methods.
+
+The third dataset, circles, proved to be the most difficult for the evaluated algorithms. As similarity-based clustering methods, the algorithms struggled to capture the circular structure inherent in the data, resulting in consistently poor performance. In this case, the best-performing algorithm was Affinity Propagation (AP), though its NMI score of 0.08 can not be seen as a good result, as is represented in Figure \ref{fig:synthetic_results_grid}.
+
+Compared to the results reported in the original paper, ours are not as distinctly favorable toward the PIC algorithm. Nevertheless, it remains evident that PIC consistently performs well on both the first and second datasets. However, similar to the other algorithms evaluated, PIC struggles with the third dataset, showing its common limitation when dealing with data of this structure.
 
 \subsection{Algorithm comparison}
 
-This section presents a comparative analysis of several clustering algorithms across four datasets: USPS, MNIST, BC-Wisconsin, and a Synthetic dataset.
+This section presents a comparative analysis of our clustering algorithms across the three non-synthetic datasets: USPS, MNIST and BC-Wisconsin, similarly as done in the original paper. The results are summarized in Table \ref{tab:synthetic_results} and Table \ref{tab:synthetic_results}. The first table presents the results in terms of Normalized Mutual Information (NMI), while the second one shows the clustering error.
 
 \begin{table}[h]
     \centering
@@ -386,13 +394,13 @@ This section presents a comparative analysis of several clustering algorithms ac
     \toprule
     \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-W} & \textbf{Blobs} & \textbf{Moons} & \textbf{Circles} \\
     \midrule
-    AP       & 0.5176   & 0.4170 & 0.2596 & 0.5176  & 0.2772 & \textbf{0.0831} \\
-    A-link   & 0.01128  & 0.0016 & 0.0151 & 0.0113  & \textbf{1.0} & 0.0 \\
-    S-link   & 0.0019   & 0.0016 & 0.0102 & 0.0019  & \textbf{1.0} & 0.002 \\
-    C-link   & 0.1592   & 0.0016 & 0.0102 & 0.1592  & 0.5640 & 0.0 \\
-    Zell     & 0.5743   & \textbf{0.6293} & \textbf{0.5679} & 0.5743   & 0.0677 & 0.0001 \\
-    D-kernel & 0.2455   & 0.0038 & 0.0102 & 0.2455   & 0.5616 & 0.0002 \\
-    PIC & \textbf{0.8708} & 0.0063 & 0.0102 & \textbf{0.8708}   & \textbf{1.0} & 0.00005 \\
+    AP       & 0.5176   & 0.4170 & 0.2596 & 0.8028  & 0.2772 & \textbf{0.0831} \\
+    A-link   & 0.01128  & 0.0016 & 0.0151 & \textbf{0.8482}  & \textbf{1.0} & 0.0 \\
+    S-link   & 0.0019   & 0.0016 & 0.0102 & 0.7067  & \textbf{1.0} & 0.002 \\
+    C-link   & 0.1592   & 0.0016 & 0.0102 & 0.8225  & 0.5640 & 0.0 \\
+    Zell     & 0.5743   & \textbf{0.6293} & \textbf{0.5679} & 0.8404   & 0.0677 & 0.0001 \\
+    D-kernel & 0.2455   & 0.0038 & 0.0102 & 0.8262   & 0.5616 & 0.0002 \\
+    PIC & \textbf{0.8708} & 0.0063 & 0.0102 & 0.8430   & \textbf{1.0} & 0.00005 \\
     \bottomrule
     \end{tabular}
     \label{tab:synthetic_results}
@@ -416,13 +424,13 @@ This section presents a comparative analysis of several clustering algorithms ac
     \end{tabular}
 \end{table}
 
-The Normalized Mutual Information (NMI) metric quantifies the similarity between clustering assignments and ground truth labels, where higher values indicate better alignment. According to the original paper, the implemented algorithm outperformed other methods on the USPS and MNIST datasets. However, the current implementation and evaluation reveal some notable differences.
+The Normalized Mutual Information (NMI) metric quantifies the similarity between clustering assignments and ground truth labels, where higher values indicate better alignment. According to the original paper, the Path Integral Clustering algorithm outperformed the rest on the USPS and MNIST datasets. However, the current implementation and evaluation reveal some notable differences.
 
-On the USPS dataset, PIC indeed achieves the highest NMI value of 0.8708, confirming the original paper's claim and reaffirming its strong performance in capturing the underlying cluster structure. 
+On the USPS dataset, PIC indeed achieves the highest NMI value of 0.8708, very far from the rest of the algorithms, confirming the original paper's claim and proving its strong performance in capturing the underlying cluster structure in a somewhat challenging dataset, considering we are clustering written numbers solely using the pixels. The NMI result presented by the original paper was 0.825 which is very close to the one we obtained, and this is a good indicator that our implementation is working correctly.
 
-For MNIST, a significant divergence from the paper's findings emerges. While PIC is reported as the top performer in the original study, it achieves only 0.0063 NMI here, with Zell dramatically outperforming it at 0.6293. This inversion suggests that in this replication, either PIC struggled to converge to meaningful clusters, or its assumptions were not well-suited to the MNIST data in this particular implementation. It could also imply that Zell, perhaps under different parameter settings or with the specific MNIST preprocessing used here, was better able to exploit the dataset's structure.
+For MNIST, on the other hand, we are presented with a significant divergence from the paper's findings. While PIC is reported as the top performer in the original study, it achieves only 0.0063 NMI here, with Zell clearly outperforming it at 0.6293. This inversion suggests that in this replication, either PIC struggled to converge to meaningful clusters, or its assumptions were not well-suited to the MNIST data in this particular implementation. It could also imply that Zell, perhaps under different parameter settings or with the specific MNIST preprocessing used here, was better able to exploit the dataset's structure.
 
-On BC-Wisconsin, which was not reported in the original paper, Zell again clearly leads with an NMI of 0.5679, followed by AP at 0.2596. All other methods, including PIC, performed very poorly here, indicating that Zell may be particularly effective in handling this dataset's cluster characteristics — likely benefitting from its capacity for detecting more globally separated clusters, as seen in earlier Silhouette and CH scores.
+On BC-Wisconsin, which was not reported in the original paper, Zell again clearly leads with an NMI of 0.5679, followed by AP at 0.2596. All other methods, including PIC, performed very poorly here, indicating that Zell may be particularly effective in handling this dataset's cluster characteristics — likely benefitting from its capacity for detecting more globally separated clusters, as seen in the CH scores of table \ref{tab:CH}.
 
 \begin{table}[h]
     \centering
@@ -432,13 +440,14 @@ On BC-Wisconsin, which was not reported in the original paper, Zell again clearl
     \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} \\
     \midrule
     AP       & 0.077   & 0.0558 & 0.0870 \\
-    A-link   & 0.2806  & 0.7832 & 0.6339  \\
-    S-link   & 0.3089   & 0.7832 & 0.6606 \\
-    C-link   & 0.1945   & 0.7832 & 0.6606 \\
+    A-link   & 0.2806  & \textbf{0.7832} & 0.6339  \\
+    S-link   & 0.3089   & \textbf{0.7832} & \textbf{0.6606} \\
+    C-link   & 0.1945   & \textbf{0.7832} & \textbf{0.6606} \\
     Zell     & 0.0681   & -0.0389 & 0.3263 \\
-    D-kernel & 0.6698   & 0.6349 & 0.6606 \\
-    PIC      & 0.1390  & 0.5941 & 0.6606 \\
+    D-kernel & \textbf{0.6698}   & 0.6349 & \textbf{0.6606} \\
+    PIC      & 0.1390  & 0.5941 & \textbf{0.6606} \\
     \bottomrule
+    \label{tab:Silhouette}
     \end{tabular}
 \end{table}
 
@@ -450,14 +459,15 @@ On BC-Wisconsin, which was not reported in the original paper, Zell again clearl
     \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} \\
     \midrule
     AP       & 1.8701   & 1.5212 & 1.3622 \\
-    A-link   & 1.1553  & 0.1325 & 0.6798 \\
-    S-link   & 0.4623   & 0.1325 & 0.4497 \\
-    C-link   & 2.4111   & 0.1325 & 0.4497 \\
+    A-link   & 1.1553  & \textbf{0.1325} & 0.6798 \\
+    S-link   & \textbf{0.4623}   & \textbf{0.1325} & \textbf{0.4497} \\
+    C-link   & 2.4111   & \textbf{0.1325} & \textbf{0.4497} \\
     Zell     & 2.0193   & 3.3001 & 1.3537 \\
-    D-kernel & 2.1858   & 3.0414 & 0.4497 \\
-    PIC     & 2.3121    & 1.5937 & 0.4497 \\
+    D-kernel & 2.1858   & 3.0414 & \textbf{0.4497} \\
+    PIC     & 2.3121    & 1.5937 & \textbf{0.4497} \\
     \bottomrule
     \end{tabular}
+    \label{tab:DBI}
 \end{table}
 
 \begin{table}[h]
@@ -471,22 +481,27 @@ On BC-Wisconsin, which was not reported in the original paper, Zell again clearl
     A-link   & 22.2013  & 52.8586 & 32.4822   \\
     S-link   & 4.5830   & 52.8586 & 27.8726 \\
     C-link   & 242.2214   & 52.8586 & 27.8726 \\
-    Zell     & 697.2199   & 185.1767 & 258.9817 \\
+    Zell     & \textbf{697.2199}   & \textbf{185.1767} & \textbf{258.9817} \\
     D-kernel & 337.163   & 46.1865 & 27.8726 \\
     PIC      & 517.6182 & 27.6675 & 27.8726 \\
     \bottomrule
     \end{tabular}
+    \label{tab:CH}
 \end{table}
 
 The Silhouette Score, which measures how similar an object is to its own cluster compared to other clusters, revealed that on the MNIST dataset, the A-link, S-link, and C-link methods all achieved identical and notably high scores of 0.7832. This indicates that these methods produced clusters with a high degree of compactness and separation. On the USPS dataset, the D-kernel method outperformed others with a Silhouette Score of 0.6698, suggesting it formed well-defined clusters in this setting. For the BC-Wisconsin dataset, the S-link, D-kernel, and PIC methods all tied with a strong score of 0.6606.
 
 When considering the Davies-Bouldin Index (DBI), where lower values signify better clustering, consistent patterns are found. On the USPS dataset the S-link method achieves the lowest DBI at 0.4623, outperforming other algorithms in terms of minimizing intra-cluster variance while maximizing inter-cluster separation. For the BC-Wisconsin dataset, the S-link, C-link, D-kernel, and PIC methods shared a DBI value of 0.4497, proving their effectiveness. Zell, D-kernel, and PIC generally performed worse in this metric on MNIST and USPS, despite competitive performances elsewhere.
 
-The Calinski-Harabasz Index (CHI), which rewards high between-cluster dispersion and low within-cluster dispersion, offered a contrasting perspective. The Zell method achieved exceptionally high CHI scores on all three real datasets, particularly on BC-Wisconsin, where it recorded a value of 258.98 — considerably surpassing other algorithms. On the USPS dataset, Zell again led with a CHI of 697.22, followed by PIC and D-kernel with notable but lower scores. Although Zell consistently achieved high CHI values, it did not perform as well in the Silhouette and DBI metrics, suggesting that while it can create globally dispersed clusters, they might lack local compactness.
+The Calinski-Harabasz Index (CHI), which rewards high between-cluster dispersion and low within-cluster dispersion, offered a contrasting perspective. The Zell method achieved exceptionally high CHI scores on all three real datasets, particularly on BC-Wisconsin, where it recorded a value of 258.98 clearly surpassing other algorithms. On the USPS dataset, Zell again led with a CHI of 697.22, followed by PIC and D-kernel with notable but lower scores. Although Zell consistently achieved high CHI values, it did not perform as well in the Silhouette and DBI metrics, suggesting that while it can create globally dispersed clusters, they might lack local compactness.
 
-In summary, the results highlight that S-link and A-link methods exhibit balanced, reliable performance across all datasets and metrics, making them strong general-purpose clustering techniques. The D-kernel method excels particularly on the USPS dataset, while Zell demonstrates outstanding performance in terms of global cluster dispersion (as measured by CHI) but falls behind in terms of compactness and separation as captured by the Silhouette and DBI scores. The Synthetic dataset’s consistent zero scores across all methods suggest either a lack of inherent cluster structure or a potential oversight in the evaluation process that warrants further investigation.
+In summary, the results highlight that S-link and A-link methods exhibit balanced, reliable performance across all datasets and metrics, making them strong general-purpose and fast clustering techniques. The D-kernel method excels particularly on the USPS dataset if we only look at internal metrics, while Zell demonstrates outstanding performance in terms of global cluster dispersion (as measured by CHI) but falls behind in terms of compactness and separation as captured by the Silhouette and DBI scores.
 
-These findings underscore the importance of using multiple complementary metrics to assess clustering performance, as different algorithms may excel under different criteria. Based on this analysis, S-link and A-link emerge as particularly reliable choices when seeking balanced clustering performance across various datasets.
+That being said, when using internal metrics to evaluate clustering results on labeled data, it's essential to keep in mind that these metrics evaluate the inherent structure of the clustering, without considering the true labels. They do not directly indicate how well the clusters align with the predefined classes, which means an algorithm can achieve strong internal scores while still poorly matching the actual labels — especially if the data's natural structure doesn't correspond to the given categories. The results observed here illustrate this situation clearly.
+
+Nonetheless, internal metrics remain valuable even in labeled scenarios as ours, as they provide complementary information about the structure of the data and quality of the formed clusters. Using internal metrics can help detect situations where the labeled classes themselves might not reflect the underlying structure of the data, or where an algorithm achieves high label agreement through overfitting or by forming poorly separated clusters. In this sense, combining internal and external metrics offers a more complete and reliable assessment than the one presented in the original paper.
+
+We see that for our particularly implemented PIC algorithm, internal metrics show mixed results across the different datasets. In terms of Silhouette score, PIC performs relatively well on BC-Wisconsin, achieving the highest score of 0.6606, but fares worse on USPS and MNIST, with scores of 0.1390 and 0.5941, respectively. The DBI values reflect a similar trend, where PIC has the highest value of 2.3121 on USPS, suggesting less distinct clusters, while it performs better on BC-Wisconsin, with a DBI of 0.4497, indicating more compact and well-separated clusters. As for Calinski-Harabasz, PIC achieves high values on USPS (517.6182) and BC-Wisconsin (27.8726), but struggles on MNIST, with a low value of 27.6675. These results indicate that while the PIC algorithm may generate good clustering quality in some cases, its performance is dataset-dependent, with significant variation in the internal metric scores across different domains.
 
 \subsection{Noise analysis}
 
@@ -496,42 +511,60 @@ In this section we will run experiments using the previously described synthetic
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{../data/plots/results_gaussian_noise_blobs.png}
-        \caption{A-Link (0.8482)}
+        \caption{Gaussian noise level (Blobs)}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{../data/plots/results_structural_noise_blobs.png}
-        \caption{PIC (0.8429)}
+        \caption{Structural noise level (Blobs)}
     \end{subfigure}
     
     \vspace{0.3cm}
     
     \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{../data/plots/results_gaussian_noise_moons.png}
-        \caption{PIC (1.0)}
+        \caption{Gaussian noise level (Moons)}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{../data/plots/results_structural_noise_moons.png}
-        \caption{A-Link (1.0)}
+        \caption{Structural noise level (Moons)}
     \end{subfigure}
     
     \vspace{0.3cm}
     
     \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{../data/plots/results_gaussian_noise_circles.png}
-        \caption{AP (0.083)}
+        \caption{Gaussian noise level (Circles)}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{../data/plots/results_structural_noise_circles.png}
-        \caption{S-Link (0.002)}
+        \caption{Structural noise level (Circles)}
     \end{subfigure}
 
-    \caption{Clustering results on the three synthetic datasets. Between parentesis, the NMI score for the algorithm presented on the respective dataset.}
+    \caption{Mean and standard deviation of NMI results for each one of the datasets when applying gaussian noise (left column) and structural noise (right column). Every experiment was repeated 20 times. Structural noise level is defined as the proportion of removed points from the original dataset.}
     \label{fig:noise_analysis}
 \end{figure}
 
+For the first dataset, blobs, there is a clear decline on the performance of all algorithms when applying gaussian noise. Despite this overall decline, the relative ranking of the algorithms remains mostly consistent, with each method maintaining its position in comparison to the others throughout the noise levels. Zell is the one that gets the top results at all noise points but the rest of algorithms are very close, with the exception of S-link, AP and C-link, which are clearly performing worse. It is notable to see that the standard deviation of the results is proportional to the NMI scores the algorithms are getting, meaning that the algorithms that are performing better are also more stable.
+
+The structural noise results on the first dataset are very relevant because we can see the resistance of PIC to noise, as stated by the original paper. While most of the algortihms are affected by the structural noise, PIC even increases its NMI score keeping it at over 0.84 with a quarter of the dataset removed. Its standard deviation is also small.
+
+On the second dataset, moons, the results are fully supporting what the paper stated, not only does PIC perform the best, but it also is the most resistant to noise. The gaussian noise almost has no effect on the performance of the algorithm, and the structural noise does not affect it. It is relevant to see how A-link and S-link have a steep decline in score with the addition of noise, showing immense variability between the different runs, while PIC is the only one that manages to keep its score.
+
+On the circles dataset, which we had shown to be more challenging to our algorithms, we see that all of the algorithms perform poorly, with the best one being AP with a score of 0.08. Here we can see a curious effect, with how the addition of gaussian noise has a favorable effect on the AP algorithm, fitting the noise and increasing its NMI score. With the structural noise the opposite happens, and all of the algorithms end up performing equally bad.
+
+In conclusion, we have seen that PIC is the most structural-noise resistant algorithm in our experiments, while having very promising results under the effect of gaussian noise.
+
 \section{Conclusions}
 
+Regarding the synthetic datasets comparison, because the datasets used by the original paper were not provided, we decided to try and create synthetic datasets as diverse as possible to try to find weak points on the PIC algorithm. We have managed to do that with the circles dataset, where the dataset clearly struggles to find the correct clusters.
+
 Comment about the claims of the paper, reproducibility \& issues encountered.
+
+Although being a challenging algorithm, with the concepts of Path Integral and mathematics, I did not find a lot of problems. The main problem I found was regarding the heap, as I tried to dinamically update the clusters that were removed I was modifying the affinities of the wrong clusters, which was hard to detect, and I ended up using the approach explained, where a set is used to store the active clusters and a heap to store the affinities. This made the algorithm run in linear time, which was one of the main goals of the project.
+
+Although the algorithm itself is conceptually challenging, involving Path Integral concepts and underlying mathematics, I did not encounter significant difficulties. The primary issue I had came up with the heap implementation. Initially, while trying to dynamically update the clusters being removed, I was modifying the affinities of the wrong clusters, an issue that proved difficult to detect. Ultimately, I adopted the approach described, using a set to track the active clusters and a heap to manage the affinities. This solution not only resolved the issue but also enabled the algorithm to run in linear time, which was one of the key objectives of the project.
+
+
 
 \newpage
 \section{Bibliography}

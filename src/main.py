@@ -34,7 +34,7 @@ def get_dataset(config: Config):
     else:
         raise ValueError(f"Unknown dataset: {config.dataset_name}")
 
-def test(config: Config=None):
+def test(config: Config):
     print("Getting data")
     X, y_true = get_dataset(config)
     
@@ -218,16 +218,24 @@ def run_noise_experiment(config: Config):
 
 if __name__ == "__main__":
     # Synthetic dataset noise experiment
-    for ds in ["moons","blobs","circles"]:
-        config = Config(
-            name=f"synthetic_noise_{ds}",
-            dataset_name=ds,
-            n_samples=1000,
-            n_features=2,
-            target_clusters=10
-        )
-        run_noise_experiment(config)
+    # for ds in ["moons","blobs","circles"]:
+    #     config = Config(
+    #         name=f"synthetic_noise_{ds}",
+    #         dataset_name=ds,
+    #         n_samples=1000,
+    #         n_features=2,
+    #         target_clusters=10
+    #     )
+    #     run_noise_experiment(config)
     
     # configs = load_configs()
     # for config in configs:
     #     test(config)
+    
+    config = Config(
+        name = "mnist",
+        dataset_name = "mnist",
+        target_clusters=5
+    )
+        
+    test(config)
