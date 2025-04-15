@@ -17,6 +17,8 @@
 
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{subcaption}
+\usepackage{caption}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{hyperref}
@@ -179,6 +181,7 @@ The iterative part consists of merging the two most affine clusters we have unti
 \label{algorithmpseudo}
 \end{algorithm}
 
+\newpage
 \section {Description of the implementation}
 
 In this section we are going to describe the particularities of the implementation of the Path Integral Clustering Algorithm. The first section goes over the implementation techniques recommended by the paper, and the second one contains the extra decisions made during the implementation. 
@@ -232,25 +235,25 @@ All the operations that involve the clustering algorithm use numpy, using matric
 
 \section {Experiments}
 
-In this section we will conduct experiments comparing different clustering algorithms on several datasets. The algorithms under evaluation include Affinity Propagation, Complete Link, Average Link, Simple Link, Zeta clustering (Zell), Difussion clustering, and of course, our implementation of PIC. Each algorithm will be tested on four datasets: MNIST, USPS, Breast Cancer (Wisconsin), and a synthetic random dataset with 1000 samples and 50 features. We are going to divide the experiments section into two subsections. In the first subsection, we are going to analyse how does the introduction of gaussian noise and structural noise affect the performance of the different algorithms, similar to what is done in the original paper. In the second one, we are going to run the algorithms on the complete datasets to observe what are the differences in their performances, using a diverse set of metrics.
+In this section we will conduct experiments comparing different clustering algorithms on several datasets. The algorithms under evaluation include Affinity Propagation, Complete Link, Average Link, Simple Link, Zeta clustering (Zell), Difussion clustering, and of course, our implementation of PIC. Each algorithm will be tested on four datasets: MNIST, USPS, Breast Cancer (Wisconsin), and a synthetic random dataset with 1000 samples. We are going to divide the experiments section into two subsections. In the first subsection, we are going to analyse how does the introduction of gaussian noise and structural noise affect the performance of the different algorithms, similar to what is done in the original paper. In the second one, we are going to run the algorithms on the complete datasets to observe what are the differences in their performances, using a diverse set of metrics.
 
 The choice of the algorithms we are using is due to the fact that we only have found implementations for the Affinity Propagation, Complete, Average and Simple Links. Although in the project we only had to implement PIC, we decided to also implement some of the algorithms that get the most similar results in the paper, and the selected algorithms to implement are the diffusion Kernel (D-kernel) and Zeta function clustering (Zell), because they are shown to be better than PIC in some domains in the original paper.
 
 The datasets chosen are also extracted from the paper: MNIST and USPS. We opted not to use the FRGC ver2.0, PubFig, and Caltech datasets for this study due to their large size, which would require significant computational resources and time for processing, apart from the approach the paper takes on loading them, which uses spatial pyramid features. Instead, we have decided to incorporate the Breast-cancer wisconsin dataset because it is a well-known benchmark in the medical domain, containing a high-dimensional, real-world classification and being widely used. In addition, being a binary classification dataset, it stands out from the rest and means that the algorithms will have to iterate until only two clusters are remaining, apart from being something not tested in the original paper.
 
-We don't have access to the synthetic datasets that are used in the paper, and for this reason we have decided to create our own. It will be using the synthetic datasets that we will study how does structural and gaussian noise affect our implementation of the clustering algorithm. We are going to use three different synthetic datasets, the first one using moons, second one using concentric circles and last one using blobs. Our synthetic datasets will have 1000 samples, 2 features for ease of representation (same as the ones in the paper) and 10 target clusters.
+We don't have access to the synthetic datasets that are used in the paper, and for this reason we have decided to create our own. It will be through the synthetic datasets that we will study how does structural and gaussian noise affect our implementation of the clustering algorithm. To have datasets as diverse as possible, we are going to use three different ones, the first one using moons, second one using concentric circles and last one using blobs. Our synthetic datasets will have 1000 samples, 2 features for ease of representation (same as the ones in the paper) and 10 target clusters.
 
 \begin{table}[h]
 \centering
-\caption{Statistics of used datasets.}
+\caption{Statistics of used datasets. Synthetic represents the three synthetic datasets: blobs, moons and circles.}
 \begin{tabular}{lccccc}
 \toprule
 \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
 \midrule
-No. of samples     & 11\,000 & 5\,139 & 569 & 1000 \\
+No. of samples     & 9\,298 & 5\,139 & 569 & 1\,000 \\
 No. of clusters    & 10     & 5     & 2    & 10   \\
-Min. cluster size  & 1100   & 980   & 212     & - \\
-Max. cluster size  & 1100   & 1135  & 357     & - \\
+Min. cluster size  & 708   & 980   & 212     & - \\
+Max. cluster size  & 1\,553   & 1\,135  & 357     & - \\
 Noise added  & No   & No  & No     & Yes \\
 Dimensionality     & 256    & 784   & 30   & 2 \\
 \bottomrule
@@ -317,11 +320,60 @@ where:
     \item $\text{Tr}(W_k)$ is the trace of the within-cluster dispersion matrix.
 \end{itemize}
 
-\subsection{Noise analysis}
+\subsection{Synthetic datasets}
 
-In this section we will run experiments using the previously described synthetic dataset incorporating different levels of gaussian noise and structural noise to see how do the different methods behave. Because the addition of gaussian and structural noise is done randomly, we have followed the same practices from the original paper and repeated all the experiments 20 times, showing the mean and the standard deviation at each noise level.
+In this section, we present the results on the synthetic datasets. In Figure \ref{fig:synthetic_results_grid} the three best algorithms for each one of the synthetic datasets are presented. The complete data for the synthetic datasets can be observed in Table \ref{tab:synthetic_results}. The first dataset we created, blobs, presented in images a, b and c inside Figure \ref{fig:synthetic_results_grid}, 
 
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_blobs_blobs_A-Link_structural_0.png}
+        \caption{A-Link (0.8482)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_blobs_blobs_PIC_structural_0.png}
+        \caption{PIC (0.8429)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_blobs_blobs_Zell_structural_0.png}
+        \caption{Zell (0.8403)}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_moons_moons_PIC_structural_0.png}
+        \caption{PIC (1.0)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_moons_moons_A-link_structural_0.png}
+        \caption{A-Link (1.0)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_moons_moons_S-link_structural_0.png}
+        \caption{S-Link (1.0)}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_circles_circles_AP_structural_0.png}
+        \caption{AP (0.083)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_circles_circles_S-link_structural_0.png}
+        \caption{S-Link (0.002)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/synthetic_noise_circles_circles_D-kernel_structural_0.png}
+        \caption{D-kernel (0.00023)}
+    \end{subfigure}
 
+    \caption{Clustering results on the three synthetic datasets. Between parentesis, the NMI score for the algorithm presented on the respective dataset.}
+    \label{fig:synthetic_results_grid}
+\end{figure}
+
+The results for the synthetic dataset present some relevant information. As can be seen, for the blobs dataset, PIC is between the three best models, the three of them presenting very similar results.
 
 \subsection{Algorithm comparison}
 
@@ -330,19 +382,20 @@ This section presents a comparative analysis of several clustering algorithms ac
 \begin{table}[h]
     \centering
     \caption{Quantitative clustering results in NMI. The best values are in bold.}
-    \begin{tabular}{lccccc}
+    \begin{tabular}{lcccccccc}
     \toprule
-    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-W} & \textbf{Blobs} & \textbf{Moons} & \textbf{Circles} \\
     \midrule
-    AP       & 0.5176   & 0.4170 & 0.2596  & 1 \\
-    A-link   & 0.01128  & 0.0016 & 0.0151  & 1   \\
-    S-link   & 0.0019   & 0.0016 & 0.0102  & 1 \\
-    C-link   & 0.1592   & 0.0016 & 0.0102  & 1 \\
-    Zell     & 0.5743   & \textbf{0.6293} & \textbf{0.5679}  & 1 \\
-    D-kernel & 0.2455   & 0.0038 & 0.0102  & 1 \\
-    PIC & \textbf{0.8708} & 0.0063 & 0.0102 & 1 \\
+    AP       & 0.5176   & 0.4170 & 0.2596 & 0.5176  & 0.2772 & \textbf{0.0831} \\
+    A-link   & 0.01128  & 0.0016 & 0.0151 & 0.0113  & \textbf{1.0} & 0.0 \\
+    S-link   & 0.0019   & 0.0016 & 0.0102 & 0.0019  & \textbf{1.0} & 0.002 \\
+    C-link   & 0.1592   & 0.0016 & 0.0102 & 0.1592  & 0.5640 & 0.0 \\
+    Zell     & 0.5743   & \textbf{0.6293} & \textbf{0.5679} & 0.5743   & 0.0677 & 0.0001 \\
+    D-kernel & 0.2455   & 0.0038 & 0.0102 & 0.2455   & 0.5616 & 0.0002 \\
+    PIC & \textbf{0.8708} & 0.0063 & 0.0102 & \textbf{0.8708}   & \textbf{1.0} & 0.00005 \\
     \bottomrule
     \end{tabular}
+    \label{tab:synthetic_results}
 \end{table}
 
 \begin{table}[h]
@@ -350,15 +403,15 @@ This section presents a comparative analysis of several clustering algorithms ac
     \caption{Quantitative clustering results in Clustering error.The best values are in bold.}
     \begin{tabular}{lccccc}
     \toprule
-    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} \\
     \midrule
-    AP       & 0.9272   & 0.9527 & 0.8963  & 0 \\
-    A-link   & 0.8285  & 0.7785 & 0.3673  & 0   \\
-    S-link   & 0.8328   & 0.7785 & 0.3691  & 0 \\
-    C-link   & 0.7634   & 0.7785 & 0.3691  & 0 \\
-    Zell     & 0.4450   & \textbf{0.3592} & \textbf{0.0844}  & 0 \\
-    D-kernel & 0.6698   & 0.7772 & 0.3691  & 0 \\
-    PIC & \textbf{0.1150} & 0.7772 & 0.3691 & 0 \\
+    AP       & 0.9272   & 0.9527 & 0.8963\\
+    A-link   & 0.8285  & 0.7785 & 0.3673  \\
+    S-link   & 0.8328   & 0.7785 & 0.3691\\
+    C-link   & 0.7634   & 0.7785 & 0.3691\\
+    Zell     & 0.4450   & \textbf{0.3592} & \textbf{0.0844}\\
+    D-kernel & 0.6698   & 0.7772 & 0.3691\\
+    PIC & \textbf{0.1150} & 0.7772 & 0.3691 \\
     \bottomrule
     \end{tabular}
 \end{table}
@@ -376,15 +429,15 @@ On BC-Wisconsin, which was not reported in the original paper, Zell again clearl
     \caption{Quantitative clustering results in Silhouette score}
     \begin{tabular}{lccccc}
     \toprule
-    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} \\
     \midrule
-    AP       & 0.077   & 0.0558 & 0.0870  & 0 \\
-    A-link   & 0.2806  & 0.7832 & 0.6339  & 0   \\
-    S-link   & 0.3089   & 0.7832 & 0.6606  & 0 \\
-    C-link   & 0.1945   & 0.7832 & 0.6606  & 0 \\
-    Zell     & 0.0681   & -0.0389 & 0.3263  & 0 \\
-    D-kernel & 0.6698   & 0.6349 & 0.6606  & 0 \\
-    PIC      & 0.1390  & 0.5941 & 0.6606 & 0 \\
+    AP       & 0.077   & 0.0558 & 0.0870 \\
+    A-link   & 0.2806  & 0.7832 & 0.6339  \\
+    S-link   & 0.3089   & 0.7832 & 0.6606 \\
+    C-link   & 0.1945   & 0.7832 & 0.6606 \\
+    Zell     & 0.0681   & -0.0389 & 0.3263 \\
+    D-kernel & 0.6698   & 0.6349 & 0.6606 \\
+    PIC      & 0.1390  & 0.5941 & 0.6606 \\
     \bottomrule
     \end{tabular}
 \end{table}
@@ -394,15 +447,15 @@ On BC-Wisconsin, which was not reported in the original paper, Zell again clearl
     \caption{Quantitative clustering results in DBI}
     \begin{tabular}{lccccc}
     \toprule
-    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} \\
     \midrule
-    AP       & 1.8701   & 1.5212 & 1.3622  & 0 \\
-    A-link   & 1.1553  & 0.1325 & 0.6798  & 0   \\
-    S-link   & 0.4623   & 0.1325 & 0.4497  & 0 \\
-    C-link   & 2.4111   & 0.1325 & 0.4497  & 0 \\
-    Zell     & 2.0193   & 3.3001 & 1.3537  & 0 \\
-    D-kernel & 2.1858   & 3.0414 & 0.4497  & 0 \\
-    PIC     & 2.3121    & 1.5937 & 0.4497 & 0 \\
+    AP       & 1.8701   & 1.5212 & 1.3622 \\
+    A-link   & 1.1553  & 0.1325 & 0.6798 \\
+    S-link   & 0.4623   & 0.1325 & 0.4497 \\
+    C-link   & 2.4111   & 0.1325 & 0.4497 \\
+    Zell     & 2.0193   & 3.3001 & 1.3537 \\
+    D-kernel & 2.1858   & 3.0414 & 0.4497 \\
+    PIC     & 2.3121    & 1.5937 & 0.4497 \\
     \bottomrule
     \end{tabular}
 \end{table}
@@ -412,15 +465,15 @@ On BC-Wisconsin, which was not reported in the original paper, Zell again clearl
     \caption{Quantitative clustering results in Calinski-Harabasz}
     \begin{tabular}{lccccc}
     \toprule
-    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} & \textbf{Synthetic}\\
+    \textbf{Dataset} & \textbf{USPS} & \textbf{MNIST} & \textbf{BC-Wisconsin} \\
     \midrule
-    AP       & 68.3675   & 25.6472 & 39.0207  & 0 \\
-    A-link   & 22.2013  & 52.8586 & 32.4822  & 0   \\
-    S-link   & 4.5830   & 52.8586 & 27.8726  & 0 \\
-    C-link   & 242.2214   & 52.8586 & 27.8726  & 0 \\
-    Zell     & 697.2199   & 185.1767 & 258.9817  & 0 \\
-    D-kernel & 337.163   & 46.1865 & 27.8726  & 0 \\
-    PIC      & 517.6182 & 27.6675 & 27.8726 & 0 \\
+    AP       & 68.3675   & 25.6472 & 39.0207 \\
+    A-link   & 22.2013  & 52.8586 & 32.4822   \\
+    S-link   & 4.5830   & 52.8586 & 27.8726 \\
+    C-link   & 242.2214   & 52.8586 & 27.8726 \\
+    Zell     & 697.2199   & 185.1767 & 258.9817 \\
+    D-kernel & 337.163   & 46.1865 & 27.8726 \\
+    PIC      & 517.6182 & 27.6675 & 27.8726 \\
     \bottomrule
     \end{tabular}
 \end{table}
@@ -434,6 +487,47 @@ The Calinski-Harabasz Index (CHI), which rewards high between-cluster dispersion
 In summary, the results highlight that S-link and A-link methods exhibit balanced, reliable performance across all datasets and metrics, making them strong general-purpose clustering techniques. The D-kernel method excels particularly on the USPS dataset, while Zell demonstrates outstanding performance in terms of global cluster dispersion (as measured by CHI) but falls behind in terms of compactness and separation as captured by the Silhouette and DBI scores. The Synthetic dataset’s consistent zero scores across all methods suggest either a lack of inherent cluster structure or a potential oversight in the evaluation process that warrants further investigation.
 
 These findings underscore the importance of using multiple complementary metrics to assess clustering performance, as different algorithms may excel under different criteria. Based on this analysis, S-link and A-link emerge as particularly reliable choices when seeking balanced clustering performance across various datasets.
+
+\subsection{Noise analysis}
+
+In this section we will run experiments using the previously described synthetic dataset incorporating different levels of gaussian noise and structural noise to see how do the different methods behave. Because the addition of gaussian and structural noise is done randomly, we have followed the same practices from the original paper and repeated all the experiments 20 times, showing the mean and the standard deviation at each noise level.
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/results_gaussian_noise_blobs.png}
+        \caption{A-Link (0.8482)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/results_structural_noise_blobs.png}
+        \caption{PIC (0.8429)}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/results_gaussian_noise_moons.png}
+        \caption{PIC (1.0)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/results_structural_noise_moons.png}
+        \caption{A-Link (1.0)}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/results_gaussian_noise_circles.png}
+        \caption{AP (0.083)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../data/plots/results_structural_noise_circles.png}
+        \caption{S-Link (0.002)}
+    \end{subfigure}
+
+    \caption{Clustering results on the three synthetic datasets. Between parentesis, the NMI score for the algorithm presented on the respective dataset.}
+    \label{fig:noise_analysis}
+\end{figure}
 
 \section{Conclusions}
 

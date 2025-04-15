@@ -80,16 +80,39 @@ def load_mnist():
 
 def load_bc_wisconsin():
     data = load_breast_cancer()
-    
+        
     return data.data, data.target
 
-if __name__ == "__main__":
-    images_x, image_y = load_mnist()
+def analyze_ds(name, image_x, image_y):
+    
+    print("##########################")
+    print(f"Analyzing {name} dataset")
+    print("##########################")
+    
+    print(images_x.shape)
+    print(len(set(image_y)))
+    print(min([len(np.where(image_y == i)[0]) for i in set(image_y)]))
+    print(max([len(np.where(image_y == i)[0]) for i in set(image_y)]))
 
-    plt.figure(figsize=(10, 5))
-    for i in range(5):
-        plt.subplot(1, 5, i + 1)
-        plt.imshow(images_x[i], cmap="gray")
-        plt.title(f"Label: {images_x[i]}")
-        plt.axis("off")
-    plt.show()
+    if name != "BC-Wisconsin":
+        plt.figure(figsize=(10, 5))
+        for i in range(5):
+            plt.subplot(1, 5, i + 1)
+            side = int(np.sqrt(images_x.shape[1]))
+            img = images_x[i].reshape(side,side)
+            plt.imshow(img, cmap="gray")
+            plt.title(f"Label: {images_x[i]}")
+            plt.axis("off")
+        plt.show()
+    
+if __name__ == "__main__":
+    images_x, image_y = load_bc_wisconsin()
+    analyze_ds("BC-Wisconsin", images_x, image_y)
+    images_x, image_y = load_usps()
+    analyze_ds("USPS", images_x, image_y)
+    
+    images_x, image_y = load_mnist()
+    analyze_ds("MNIST", images_x, image_y)
+    
+    images_x, image_y = load_bc_wisconsin()
+    analyze_ds("BC-Wisconsin", images_x, image_y)
