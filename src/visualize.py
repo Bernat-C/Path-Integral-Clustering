@@ -33,6 +33,7 @@ def visualize_clusters(X, y, title="Clustering Visualization", save_path = False
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path)
+        plt.close()
     else:
         plt.show(block=PLOT_BLOCK_EXECUTION)
         

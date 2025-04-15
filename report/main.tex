@@ -369,7 +369,7 @@ On the USPS dataset, PIC indeed achieves the highest NMI value of 0.8708, confir
 
 For MNIST, a significant divergence from the paper's findings emerges. While PIC is reported as the top performer in the original study, it achieves only 0.0063 NMI here, with Zell dramatically outperforming it at 0.6293. This inversion suggests that in this replication, either PIC struggled to converge to meaningful clusters, or its assumptions were not well-suited to the MNIST data in this particular implementation. It could also imply that Zell, perhaps under different parameter settings or with the specific MNIST preprocessing used here, was better able to exploit the dataset's structure.
 
-On BC-Wisconsin, which was not reported in the original paper, Zell again clearly leads with an NMI of 0.5679, followed by AP at 0.2596. All other methods, including PIC, performed very poorly here, indicating that Zell may be particularly effective in handling this dataset’s cluster characteristics — likely benefitting from its capacity for detecting more globally separated clusters, as seen in earlier Silhouette and CH scores.
+On BC-Wisconsin, which was not reported in the original paper, Zell again clearly leads with an NMI of 0.5679, followed by AP at 0.2596. All other methods, including PIC, performed very poorly here, indicating that Zell may be particularly effective in handling this dataset's cluster characteristics — likely benefitting from its capacity for detecting more globally separated clusters, as seen in earlier Silhouette and CH scores.
 
 \begin{table}[h]
     \centering

@@ -1,4 +1,5 @@
 import os
+import ast
 import tqdm
 import numpy as np
 import pandas as pd
@@ -92,7 +93,7 @@ def evaluate_clustering(X, y_true, noise_level, n_clusters, noise_type="gaussian
         "PIC": []
     }
     
-    for _ in tqdm.tqdm(range(20)):
+    for it in tqdm.tqdm(range(20)):
         # Add noise to the data
         if noise_type == "gaussian":
             X_noisy = add_gaussian_noise(X, noise_level)
@@ -115,7 +116,8 @@ def evaluate_clustering(X, y_true, noise_level, n_clusters, noise_type="gaussian
         y_pred["PIC"] = pic.fit_predict(X_scaled)
         
         for alg, result in y_pred.items():
-            visualize_clusters(X_scaled, result, title="Definitive clusters", save_path=PLOTS_DIR / f"{config.name}_{config.dataset_name}_{alg}_{noise_type}_{noise_level}.png")
+            if it == 0:
+                visualize_clusters(X_scaled, result, title="Definitive clusters", save_path=PLOTS_DIR / f"{config.name}_{config.dataset_name}_{alg}_{noise_type}_{noise_level}.png")
             nmi_score = normalized_mutual_info_score(y_true_def, result)
             nmi_scores[alg].append(nmi_score)
     
@@ -149,6 +151,16 @@ def run_noise_experiment(config: Config):
     
     for noise_level in (pbar := tqdm.tqdm(gaussian_noise_levels, desc=f"Running gaussian noise experiment")):
         if 'noise_level' in df_result.columns and noise_level in df_result['noise_level'].values:
+            res = df_result[df_result['noise_level'] == noise_level].iloc[0].to_dict()
+            for el in res.values():
+                s_clean = el.replace('np.float64', 'float')
+                pair = ast.literal_eval(s_clean)
+
+                # Convert to NumPy float64
+                el = tuple(np.float64(x) for x in pair)
+            break
+            results_gaussian.append()
+            print(len(results_gaussian))
             continue
         
         pbar.set_postfix({'noise_level': noise_level})
@@ -160,24 +172,28 @@ def run_noise_experiment(config: Config):
         df_result = pd.DataFrame(results_gaussian)
         df_result.to_csv(csv_file_gaussian, index=False)
         
-    results_structural = []
-    csv_file_structural = os.path.join(DATA_DIR, f'structural_noise_{exp_type}.csv')
+    # results_structural = []
+    # csv_file_structural = os.path.join(DATA_DIR, f'structural_noise_{exp_type}.csv')
     
-    if os.path.exists(csv_file_structural):
-        df_result = pd.read_csv(csv_file_structural)
-    else:
-        df_result = pd.DataFrame()
+    # if os.path.exists(csv_file_structural):
+    #     df_result = pd.read_csv(csv_file_structural)
+    # else:
+    #     df_result = pd.DataFrame()
     
-    for noise_level in (pbar := tqdm.tqdm(structural_noise_levels, desc=f"Running structural noise experiment")):
+    # for noise_level in (pbar := tqdm.tqdm(structural_noise_levels, desc=f"Running structural noise experiment")):
+    #     if 'noise_level' in df_result.columns and noise_level in df_result['noise_level'].values:
+    #         results_gaussian.append(df_result[df_result['noise_level'] == noise_level].iloc[0].to_dict())
+    #         print(results_gaussian)
+    #         continue
         
-        pbar.set_postfix({'noise_level': noise_level})
+    #     pbar.set_postfix({'noise_level': noise_level})
         
-        result = evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "structural")
-        result['noise_level'] = noise_level
-        results_gaussian.append(result)
+    #     result = evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "structural")
+    #     result['noise_level'] = noise_level
+    #     results_gaussian.append(result)
         
-        df_result = pd.DataFrame(results_structural)
-        df_result.to_csv(csv_file_structural, index=False)
+    #     df_result = pd.DataFrame(results_structural)
+    #     df_result.to_csv(csv_file_structural, index=False)
         
     plot_noise_results(results_gaussian, gaussian_noise_levels, noise_type="Gaussian", save_path=PLOTS_DIR / f"results_gaussian_noise.png")
     plot_noise_results(results_structural, structural_noise_levels, noise_type="Structural", save_path=PLOTS_DIR / f"results_structural_noise.png")
