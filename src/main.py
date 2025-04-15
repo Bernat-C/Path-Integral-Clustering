@@ -1,4 +1,5 @@
 import os
+import re
 import ast
 import tqdm
 import numpy as np
@@ -152,15 +153,16 @@ def run_noise_experiment(config: Config):
     for noise_level in (pbar := tqdm.tqdm(gaussian_noise_levels, desc=f"Running gaussian noise experiment")):
         if 'noise_level' in df_result.columns and noise_level in df_result['noise_level'].values:
             res = df_result[df_result['noise_level'] == noise_level].iloc[0].to_dict()
-            for el in res.values():
-                s_clean = el.replace('np.float64', 'float')
+            res_treated = {}
+            for key,el in res.items():
+                if key == "noise_level":
+                    res_treated[key] = el
+                    continue
+                s_clean = re.sub(r'np.float64\((.*?)\)', r'\1', el)
                 pair = ast.literal_eval(s_clean)
-
-                # Convert to NumPy float64
                 el = tuple(np.float64(x) for x in pair)
-            break
-            results_gaussian.append()
-            print(len(results_gaussian))
+                res_treated[key] = el
+            results_gaussian.append(res_treated)
             continue
         
         pbar.set_postfix({'noise_level': noise_level})
@@ -171,32 +173,48 @@ def run_noise_experiment(config: Config):
         
         df_result = pd.DataFrame(results_gaussian)
         df_result.to_csv(csv_file_gaussian, index=False)
-        
-    # results_structural = []
-    # csv_file_structural = os.path.join(DATA_DIR, f'structural_noise_{exp_type}.csv')
     
-    # if os.path.exists(csv_file_structural):
-    #     df_result = pd.read_csv(csv_file_structural)
-    # else:
-    #     df_result = pd.DataFrame()
+    for x in results_gaussian:
+        x.pop("noise_level", None)
+        
+    plot_noise_results(results_gaussian, gaussian_noise_levels, noise_type="Gaussian", save_path=PLOTS_DIR / f"results_gaussian_noise_{exp_type}.png")
     
-    # for noise_level in (pbar := tqdm.tqdm(structural_noise_levels, desc=f"Running structural noise experiment")):
-    #     if 'noise_level' in df_result.columns and noise_level in df_result['noise_level'].values:
-    #         results_gaussian.append(df_result[df_result['noise_level'] == noise_level].iloc[0].to_dict())
-    #         print(results_gaussian)
-    #         continue
+    results_structural = []
+    csv_file_structural = os.path.join(DATA_DIR, f'structural_noise_{exp_type}.csv')
+    
+    if os.path.exists(csv_file_structural):
+        df_result = pd.read_csv(csv_file_structural)
+    else:
+        df_result = pd.DataFrame()
+    
+    for noise_level in (pbar := tqdm.tqdm(structural_noise_levels, desc=f"Running structural noise experiment")):
+        if 'noise_level' in df_result.columns and noise_level in df_result['noise_level'].values:
+            res = df_result[df_result['noise_level'] == noise_level].iloc[0].to_dict()
+            res_treated = {}
+            for key,el in res.items():
+                if key == "noise_level":
+                    res_treated[key] = el
+                    continue
+                s_clean = re.sub(r'np.float64\((.*?)\)', r'\1', el)
+                pair = ast.literal_eval(s_clean)
+                el = tuple(np.float64(x) for x in pair)
+                res_treated[key] = el
+            results_structural.append(res_treated)
+            continue
         
-    #     pbar.set_postfix({'noise_level': noise_level})
+        pbar.set_postfix({'noise_level': noise_level})
         
-    #     result = evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "structural")
-    #     result['noise_level'] = noise_level
-    #     results_gaussian.append(result)
+        result = evaluate_clustering(X_scaled, y_true, noise_level, n_centers, "structural")
+        result['noise_level'] = noise_level
+        results_structural.append(result)
         
-    #     df_result = pd.DataFrame(results_structural)
-    #     df_result.to_csv(csv_file_structural, index=False)
-        
-    plot_noise_results(results_gaussian, gaussian_noise_levels, noise_type="Gaussian", save_path=PLOTS_DIR / f"results_gaussian_noise.png")
-    plot_noise_results(results_structural, structural_noise_levels, noise_type="Structural", save_path=PLOTS_DIR / f"results_structural_noise.png")
+        df_result = pd.DataFrame(results_structural)
+        df_result.to_csv(csv_file_structural, index=False)
+
+    for x in results_structural:
+        x.pop("noise_level", None)
+    
+    plot_noise_results(results_structural, structural_noise_levels, noise_type="Structural", save_path=PLOTS_DIR / f"results_structural_noise_{exp_type}.png")
 
 if __name__ == "__main__":
     # Synthetic dataset noise experiment

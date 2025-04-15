@@ -72,5 +72,7 @@ def plot_noise_results(results: dict, x_indices, noise_type="Gaussian", save_pat
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path)
+        plt.close()
     else:
         plt.show(block=PLOT_BLOCK_EXECUTION)
+        plt.close()
