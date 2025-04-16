@@ -1,9 +1,10 @@
 \babel@toc {english}{}\relax 
 \contentsline {section}{\numberline {1}Introduction to the problem}{3}{section.1}%
-\contentsline {subsection}{\numberline {1.1}Cluster initialization}{3}{subsection.1.1}%
-\contentsline {subsection}{\numberline {1.2}Building the structural graph}{4}{subsection.1.2}%
-\contentsline {subsection}{\numberline {1.3}Affinity measure: Path integral}{4}{subsection.1.3}%
-\contentsline {subsection}{\numberline {1.4}Agglomerative algorithm}{5}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.1}Novelty of the Path Integral Clustering}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Cluster initialization}{4}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Building the structural graph}{4}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Affinity measure: Path integral}{5}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Agglomerative algorithm}{5}{subsection.1.5}%
 \contentsline {section}{\numberline {2}Description of the implementation}{6}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Efficient computation of the path integral}{6}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Implementation decisions}{7}{subsection.2.2}%

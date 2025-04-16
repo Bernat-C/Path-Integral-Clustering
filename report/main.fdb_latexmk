@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1744738708.69574 "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" "main.pdf" "main" 1744738711.01335 0
+["pdflatex"] 1744828661.43147 "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" "main.pdf" "main" 1744828663.87942 0
   "../data/plots/results_gaussian_noise_blobs.png" 1744709061 66278 f6f2f31de75fbde251a3a688cae1483f ""
   "../data/plots/results_gaussian_noise_circles.png" 1744723593 45332 c73f872f37a066c841fb4167caaddec7 ""
   "../data/plots/results_gaussian_noise_moons.png" 1744694685 67900 8030d990c6ca18c18446f5f8155e4c6d ""
@@ -38,7 +38,6 @@
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmmib10.tfm" 1136765053 1524 554068197b70979a55370e6c6495f441 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr12.tfm" 1136765053 1288 655e228510b4c2a1abe905c368440826 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr17.tfm" 1136765053 1292 296a67155bdbfc32aa9c636f21e91433 ""
-  "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr8.tfm" 1136765053 1292 21c1c5bfeaebccffdb478fd231a0997d ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr9.tfm" 1136765053 1292 6b21b9c2c7bebb38aa2273f7ca0fb3af ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmss10.tfm" 1136765053 1316 b636689f1933f24d1294acdf6041daaa ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmssbx10.tfm" 1136765053 1272 e2d13f0df30bf3ad990bb9d028e37f34 ""
@@ -54,7 +53,6 @@
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1247596667 32722 d7379af29a190c3f453aba36302ff5a9 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb" 1247596667 31809 8670ca339bf94e56da1fc21c80635e2a ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1247596667 32762 7fee39e011c23b3589931effd97b9702 ""
-  "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb" 1247596667 32726 39f0f9e62e84beb801509898a605dbd5 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb" 1247596666 33993 9b89b85fd2d9df0482bd47194d1d3bf3 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmssbx10.pfb" 1247596666 28902 2f5c04fd2884d1878057baa5aad22765 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1247596667 32569 5e5ddc8df908dea60932f3c484a54c0d ""
@@ -149,11 +147,11 @@
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1657800696 9714 ba3194bd52c8499b3f1e3eb91d409670 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
-  "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" 1744738708 42895 363477d73657b2c9ed466de52a07b725 ""
-  "main.aux" 1744738710 11217 4ad5b2fe23f7545c053b24901c6cc57c "pdflatex"
-  "main.out" 1744738709 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "main.tex" 1744738708 42895 363477d73657b2c9ed466de52a07b725 ""
-  "main.toc" 1744738710 1375 9f81fc609bbe9d3b095ca954c650d7c2 "pdflatex"
+  "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" 1744828661 45989 835a95ba4f0a0ae77132dcda15301d07 ""
+  "main.aux" 1744828663 11632 7d48542bbf2dd76f4703856cb51baf1a "pdflatex"
+  "main.out" 1744828662 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main.tex" 1744828661 45989 835a95ba4f0a0ae77132dcda15301d07 ""
+  "main.toc" 1744828663 1480 5bb08bbbf072f630bb5ebfe5248e9395 "pdflatex"
   (generated)
   "main.aux"
   "main.log"
