@@ -9,7 +9,7 @@
 \contentsline {subsection}{\numberline {2.1}Efficient computation of the path integral}{6}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Implementation decisions}{7}{subsection.2.2}%
 \contentsline {section}{\numberline {3}Experiments}{7}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Metrics to be used}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.1}Metrics to be used}{9}{subsection.3.1}%
 \contentsline {subsection}{\numberline {3.2}Synthetic datasets}{10}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}Algorithm comparison}{11}{subsection.3.3}%
 \contentsline {subsection}{\numberline {3.4}Noise analysis}{14}{subsection.3.4}%

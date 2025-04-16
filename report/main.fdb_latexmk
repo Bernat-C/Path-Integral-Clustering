@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1744828661.43147 "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" "main.pdf" "main" 1744828663.87942 0
+["pdflatex"] 1744831107.79932 "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" "main.pdf" "main" 1744831110.10986 0
   "../data/plots/results_gaussian_noise_blobs.png" 1744709061 66278 f6f2f31de75fbde251a3a688cae1483f ""
   "../data/plots/results_gaussian_noise_circles.png" 1744723593 45332 c73f872f37a066c841fb4167caaddec7 ""
   "../data/plots/results_gaussian_noise_moons.png" 1744694685 67900 8030d990c6ca18c18446f5f8155e4c6d ""
@@ -147,11 +147,11 @@
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1657800696 9714 ba3194bd52c8499b3f1e3eb91d409670 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/girob/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
-  "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" 1744828661 45989 835a95ba4f0a0ae77132dcda15301d07 ""
-  "main.aux" 1744828663 11632 7d48542bbf2dd76f4703856cb51baf1a "pdflatex"
-  "main.out" 1744828662 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "main.tex" 1744828661 45989 835a95ba4f0a0ae77132dcda15301d07 ""
-  "main.toc" 1744828663 1480 5bb08bbbf072f630bb5ebfe5248e9395 "pdflatex"
+  "c:/Users/girob/Documents/GitHub/Path-Integral-Clustering/report/main.tex" 1744831107 47029 187a3d3ce66524fe9d08efe9177e8b9a ""
+  "main.aux" 1744831109 11633 205bb91bc65c212887d2908c931a269f "pdflatex"
+  "main.out" 1744831108 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main.tex" 1744831107 47029 187a3d3ce66524fe9d08efe9177e8b9a ""
+  "main.toc" 1744831109 1480 9293fd69fe95c41506080edac37fbff6 "pdflatex"
   (generated)
   "main.aux"
   "main.log"

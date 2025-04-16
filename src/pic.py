@@ -3,7 +3,7 @@ import heapq
 import tqdm
 
 from nearest_neighbour_init import cluster_init
-from utils import k_nearest_neighbors, dist
+from utils import k_nearest_neighbors_and_3, dist
 from path_integral import compute_incremental_path_integral, compute_path_integral
 
 class PathIntegralClustering:
@@ -32,7 +32,7 @@ class PathIntegralClustering:
             
         return squared_dists / den
 
-    def _pairwise_similarity_matrix(self, X, knn, sigma2):
+    def _pairwise_similarity_matrix(self, X, knn_ind, knn_dist, sigma2):
         """Computes the pairwise similarity matrix W
 
         Args:
@@ -47,8 +47,8 @@ class PathIntegralClustering:
         W = np.zeros((n, n))  # Initialize the similarity matrix
 
         for i in tqdm.tqdm(range(n),desc="Computing matrix W", disable=not self.verbose):
-            for j in knn[i]:  # Only compute for k-nearest neighbors
-                W[i, j] = np.exp(-(dist(X[i], X[j]) ** 2 / sigma2))
+            for j, dist in zip(knn_ind[i], knn_dist[i]):  # Only compute for k-nearest neighbors
+                W[i, j] = np.exp(-(dist ** 2 / sigma2))
 
         return W
 
@@ -84,12 +84,11 @@ class PathIntegralClustering:
             print(f"Creating Digraph")
         X = np.asarray(X)
         
-        knn_ind, knn_dis = k_nearest_neighbors(X,self.K)
-        knn3_ind, knn3_dis = k_nearest_neighbors(X,k=3)
+        knn_ind, knn_dis, knn3_ind, knn3_dis = k_nearest_neighbors_and_3(X,self.K)
         sigma2 = self._sigma_squared(X,knn3_dis,self.a)
             
         # Weighted adjacency matrix
-        W = self._pairwise_similarity_matrix(X, knn_ind, sigma2)
+        W = self._pairwise_similarity_matrix(X, knn_ind, knn_dis, sigma2)
 
         return W
 

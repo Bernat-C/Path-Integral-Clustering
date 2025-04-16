@@ -49,13 +49,6 @@ def compute_incremental_path_integral(C_a, C_b, P, z):
     # Identity matrix of same shape as P_CaUb
     I = identity(C_size, format='csc')
     
-    #print("CA")
-    #print(C_a)
-    #print("CB")
-    #print(C_b)
-    #print("PCAUB")
-    #print(P_CaUb)
-
     # Create indicator vector 1_Ca (same size as C_a_union_C_b)
     global_to_local = {global_idx: local_idx for local_idx, global_idx in enumerate(C_a_union_C_b)}
     ones_Ca = np.zeros(C_size)
@@ -63,20 +56,11 @@ def compute_incremental_path_integral(C_a, C_b, P, z):
         local_idx = global_to_local[global_idx]  # Map global index to local index
         ones_Ca[local_idx] = 1  # Set elements corresponding to C_a as 1
 
-    #print("ONESCA")
-    #print(ones_Ca)
-
     # Compute (I - Z * P_CaUb)^(-1)
     A = I - z * csc_matrix(P_CaUb)
     
-    #print("A")
-    #print(A)
-    
     y = spsolve(A, ones_Ca)
     
-    #print("Y")
-    #print(y)
-
     # Compute path integral using the formula
     S_Ca_given_CaUb = (1 / len(C_a)**2) * np.dot(ones_Ca.T, y)
     

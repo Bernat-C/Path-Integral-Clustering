@@ -1,5 +1,3 @@
-import collections
-import os
 import kagglehub
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,11 +16,13 @@ def generate_synthetic(n_samples, n_features, centers, ds_type, random_state=Non
     return X, y
 
 def add_gaussian_noise(X, noise_level):
+    """ Add Gaussian noise to the dataset. """
     # Generate Gaussian noise with mean 0 noise_level standard deviation
     noise = np.random.normal(loc=0.0, scale=noise_level/10, size=X.shape)
     return X + noise
 
 def add_structural_noise(X, y_true, noise_level=0.1):
+    """ Add structural noise to the dataset by removing a percentage of points. """
     num_points_to_remove = int(len(X) * noise_level)
     
     # Randomly select indices of points to remove
@@ -32,14 +32,8 @@ def add_structural_noise(X, y_true, noise_level=0.1):
         
     return X_noisy, y_noisy
 
-def download_mnist():
-    """
-    Download the MNIST dataset using kagglehub.
-    """
-    dataset = kagglehub.dataset_download("hojjatk/mnist-dataset")
-    return dataset
-
 def load_usps():
+    """ Load the USPS dataset from torchvision.datasets """
     usps_dataset = USPS(root="./data/USPS", train=True, download=True)
     usps_dataset_test = USPS(root="./data/USPS", train=False, download=True)
     
@@ -57,7 +51,7 @@ def load_usps():
 
 def load_mnist():
     """
-    Select all images of digits from 0 to 4 in the MNIST test set.
+    Load the MNIST dataset from tensorflow.keras.datasets, selects all images of digits from 0 to 4 in the MNIST test set.
     Should result in:
     - 5139 samples
     - 5 clusters
@@ -79,11 +73,13 @@ def load_mnist():
     return images, labels
 
 def load_bc_wisconsin():
+    """ Load the Breast Cancer Wisconsin dataset from sklearn.datasets """
     data = load_breast_cancer()
         
     return data.data, data.target
 
-def analyze_ds(name, image_x, image_y):
+def analyze_ds(name, images_x, image_y):
+    """ Analyze the dataset """
     
     print("##########################")
     print(f"Analyzing {name} dataset")
@@ -106,8 +102,6 @@ def analyze_ds(name, image_x, image_y):
         plt.show()
     
 if __name__ == "__main__":
-    images_x, image_y = load_bc_wisconsin()
-    analyze_ds("BC-Wisconsin", images_x, image_y)
     images_x, image_y = load_usps()
     analyze_ds("USPS", images_x, image_y)
     

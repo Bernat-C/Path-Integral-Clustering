@@ -54,24 +54,24 @@ def zeta_function_clustering(X, n_clusters, z=0.01):
     """Zeta Function-based Clustering."""
     n_samples = X.shape[0]
 
-    # Step 1: Compute pairwise distances efficiently
+    # Compute pairwise distances efficiently
     dists = pairwise_distances(X, metric='euclidean')
 
-    # Step 2: Compute similarity matrix using Zeta kernel
+    # Compute similarity matrix using Zeta kernel
     np.fill_diagonal(dists, np.inf)  # avoid self-distance = 0
     sim = 1.0 / np.power(dists, z)
     
     # Replace any infinite or NaN values with 0
     sim[~np.isfinite(sim)] = 0.0
 
-    # Step 3: Construct normalized graph Laplacian
+    # Construct normalized graph Laplacian
     degrees = sim.sum(axis=1)
     D_inv_sqrt = np.diag(1.0 / np.sqrt(degrees + 1e-8))  # avoid divide by zero
     L = np.eye(n_samples) - D_inv_sqrt @ sim @ D_inv_sqrt
 
-    # Step 4: Compute the first k eigenvectors of L (skip the first trivial eigenvector)
+    # Compute the first k eigenvectors of L (skip the first trivial eigenvector)
     _, eigvecs = eigsh(L, k=n_clusters + 1, which='SM')  # smallest magnitude
     embedding = eigvecs[:, 1:n_clusters+1]
 
-    # Step 5: KMeans clustering in spectral space
+    # KMeans clustering in spectral space
     return KMeans(n_clusters=n_clusters, n_init=10, random_state=0).fit_predict(embedding)

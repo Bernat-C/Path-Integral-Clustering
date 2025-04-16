@@ -77,7 +77,6 @@ def merge_clusters(clusters):
     
     return clusters
 
-# Main function to run the clustering process
 def cluster_init(X):
     """ Generates initial clusters using nearest neighbours merging.
 
