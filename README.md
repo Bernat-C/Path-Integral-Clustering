@@ -25,10 +25,10 @@ The implementation of the Path Integral Clustering algorithm is based on "Agglom
 
 - **Evaluation Metrics**:
   - Normalized Mutual Information (NMI)
-  - Clustering Error
-  - Silhouette Score
-  - Davies-Bouldin Index
-  - Calinski-Harabasz Index
+  - Clustering Error (CE)
+  - Silhouette Score (Silhouette)
+  - Davies-Bouldin Index (DBI)
+  - Calinski-Harabasz Index (CH)
 
 - **Visualization**:
   - Cluster visualizations
@@ -36,11 +36,7 @@ The implementation of the Path Integral Clustering algorithm is based on "Agglom
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Bernat-C/Path-Integral-Clustering.git
-   cd Path-Integral-Clustering
-   ```
+1. Clone the repository
 
 2. Install dependencies:
    ```bash
