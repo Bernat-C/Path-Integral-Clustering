@@ -1,0 +1,29 @@
+# VS Code settings
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# LaTeX report build files
+*.aux
+*.log
+*.out
+*.toc
+*.pdf
+*.bbl
+*.blg
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Env folders
+.env/
+.venv/
+*.egg-info/
