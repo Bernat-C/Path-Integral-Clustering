@@ -194,26 +194,26 @@ if __name__ == "__main__":
     # Single experiment
     config = Config(
         name=f"synthetic",
-        dataset_name="blobs",
+        dataset_name="moons",
         n_samples=500,
         n_features=2,
-        target_clusters=10
+        target_clusters=2
     )
         
     test(config)
     
     # Synthetic dataset noise experiment
-    # for ds in ["moons","blobs","circles"]:
-    #     config = Config(
-    #         name=f"synthetic_noise_{ds}",
-    #         dataset_name=ds,
-    #         n_samples=1000,
-    #         n_features=2,
-    #         target_clusters=10
-    #     )
-    #     run_noise_experiment(config)
+    for ds in ["moons","blobs","circles"]:
+        config = Config(
+            name=f"synthetic_noise_{ds}",
+            dataset_name=ds,
+            n_samples=1000,
+            n_features=2,
+            target_clusters=10
+        )
+        run_noise_experiment(config)
     
-    # # Experiment with real datasets
-    # configs = load_configs()
-    # for config in configs:
-    #     test(config)
+    # Experiment with real datasets
+    configs = load_configs()
+    for config in configs:
+        test(config)
