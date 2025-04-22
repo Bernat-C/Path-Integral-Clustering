@@ -1,0 +1,3 @@
+# Ignore all LaTeX files from language stats
+*.tex linguist-detectable=false
+report/** linguist-detectable=false
